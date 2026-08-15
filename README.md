@@ -101,6 +101,13 @@ cd app && dart run build_runner build
 flutter run -d chrome      # or: flutter run -d <android-device>
 ```
 
+> **If the Android build fails** with `Unresolved reference 'plugins'` in `settings.gradle.kts`:
+> that is Gradle's Kotlin DSL failing to build its own classpath, not a problem with this project.
+> It happens when `GRADLE_USER_HOME` sits behind a symlink or junction — a Scoop-installed Gradle
+> puts it under `scoop\apps\gradle\current\.gradle`, and `current` is a junction. Point it at a
+> real directory (`GRADLE_USER_HOME=%USERPROFILE%\.gradle`) and it builds. Web and tests are
+> unaffected either way.
+
 ```bash
 # Domain logic only — no Flutter, no network, ~1 second
 cd packages/freight_core && dart test
@@ -127,6 +134,14 @@ cd app && dart run tool/smoke.dart
 | Train detail |
 |---|
 | ![Route, schedule adherence and full timetable for a single cargo train](docs/screenshot-train-detail.jpg) |
+
+The same source on Android (Pixel 9 Pro XL emulator, light theme — the web shots above are dark,
+and both palettes come from one `ColorScheme.fromSeed`):
+
+<p align="center">
+  <img src="docs/android-overview.png" alt="Overview screen on Android showing live cargo train and vessel counts" width="300" />
+  <img src="docs/android-map.png" alt="Map screen on Android showing live train and vessel positions over southern Finland" width="300" />
+</p>
 
 ---
 
