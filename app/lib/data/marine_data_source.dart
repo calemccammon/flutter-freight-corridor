@@ -141,7 +141,11 @@ class MarineDataSource {
 
       // Finnish place names are UTF-8; decoding the bytes explicitly avoids
       // the Latin-1 fallback that turns "Järvensivu" into mojibake.
-      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      // `allowMalformed` keeps one bad byte from discarding a whole response
+      // of otherwise good vessels.
+      final json = jsonDecode(
+        utf8.decode(response.bodyBytes, allowMalformed: true),
+      );
       staleSince = null;
       await store?.write(path, json);
       return json;
