@@ -122,13 +122,17 @@ cd app && dart run tool/smoke.dart
 
 | Corridors | Map |
 |---|---|
-| ![Rail termini paired with the seaports they feed, with inbound trains and expected vessels](docs/screenshot-corridors.jpg) | ![Live train and vessel positions on a dark CARTO basemap](docs/screenshot-map.jpg) |
+| ![Rail termini paired with the seaports they feed, ranked by how much freight is moving through each](docs/screenshot-corridors.jpg) | ![Live train and vessel positions on a dark CARTO basemap](docs/screenshot-map.jpg) |
+
+| Train detail |
+|---|
+| ![Route, schedule adherence and full timetable for a single cargo train](docs/screenshot-train-detail.jpg) |
 
 ---
 
 ## Tests
 
-77 tests. Every external call is mocked, so CI needs no network and no secrets.
+78 tests. Every external call is mocked, so CI needs no network and no secrets.
 
 | Test | What it verifies |
 |---|---|
@@ -138,7 +142,7 @@ cd app && dart run tool/smoke.dart
 | `geojson_test` | `timestampExternal` is used, not the AIS second-of-minute field; malformed features are skipped, not thrown on |
 | `corridor_linker_test` | A terminus pairs with the nearest seaport in radius; foreign ports and out-of-range termini are excluded; corridors ordered by traffic |
 | `rail_data_source_test` | A real ferry client over a fake `Link` maps GraphQL onto models — so schema, query and mapping cannot silently drift apart |
-| `marine_data_source_test` | Headers and query params; UTF-8 decoding of Finnish names; cache fallback when the network drops; non-200 handling |
+| `marine_data_source_test` | Headers and query params; UTF-8 decoding of Finnish names; cache fallback when the network drops; the port directory is trimmed before caching and reused on the next load; non-200 handling |
 | `freight_repository_test` | Both transports collapse into one `FreightException`; non-freight vessels dropped; LOCODEs no ship visits excluded |
 | `widgets_test` | `AsyncValueView` renders all four states; delay chips label each bucket; rail list sorts and filters; failures offer a retry |
 
@@ -185,7 +189,7 @@ All open data from **[Fintraffic Digitraffic](https://www.digitraffic.fi/en/)**.
 | Feed | Endpoint |
 |---|---|
 | Cargo trains (GraphQL) | `rata.digitraffic.fi/api/v2/graphql/graphql` — `currentlyRunningTrains`, filtered to `trainCategory: "Cargo"` |
-| Wagon compositions | same endpoint — `compositions { journeySections { wagons locomotives } }` |
+| Wagon compositions | same endpoint — `compositions { journeySections { wagons locomotives } }` (see caveat below) |
 | Vessel positions (AIS) | `meri.digitraffic.fi/api/ais/v1/locations` |
 | Vessel details | `meri.digitraffic.fi/api/ais/v1/vessels` |
 | Port calls | `meri.digitraffic.fi/api/port-call/v1/port-calls` |
@@ -244,6 +248,21 @@ visits, so the port set is narrowed to codes that actually appear in the port-ca
 it, a terminus gets paired with a lakeside village; with it, you get **Kotka ← Kotka Mussalo**
 and **Kokkola ← Ykspihlaja väliratapiha**, which are real freight connections.
 
+### Wagon composition is a passenger-only feed
+
+The schema exposes `compositions { journeySections { wagons locomotives } }` on every `Train`,
+which reads like a gift for a freight app — wagon counts, train length, haulage type. It is not.
+Checked against every cargo train running at the time of writing: **0 of 18 returned any
+composition**, while a sample of passenger services returned 5–12 wagons each. Digitraffic
+publishes composition for services where carriage detail matters to a traveller, and freight
+simply isn't one.
+
+The mapping code and its tests are kept, because the field is real and populated for other train
+categories — but the train detail screen says so in as many words instead of rendering an empty
+space, and this README does not claim a feature the data cannot support. Finding this needed
+querying the API rather than reading the schema, which is the general lesson: a field existing in
+a GraphQL schema is not a promise that it is ever non-empty for your slice of the data.
+
 ### Polling, not MQTT
 
 Digitraffic offers MQTT over WebSocket. This app polls instead. A reconnect/backoff lifecycle
@@ -255,7 +274,7 @@ failed poll retries; a dropped websocket on a stranger's laptop is a broken demo
 
 ## Project Comparison
 
-| | `flutter-freight-corridor` | [`energy-insights`](https://github.com/calemccammon/energy-insights) |
+| | `flutter-freight-corridor` | [`react-native-energy-insights`](https://github.com/calemccammon/react-native-energy-insights) |
 |---|---|---|
 | Framework | Flutter 3.47 / Dart | React Native + Expo / TypeScript |
 | UI model | Widgets, composed and immutable | Components + JSX |

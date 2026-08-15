@@ -49,16 +49,55 @@ class MarineDataSource {
   /// The Finnish seaports, with coordinates.
   ///
   /// The endpoint returns the entire worldwide UN/LOCODE directory — about
-  /// 18,600 entries, of which roughly 170 are Finnish places that actually
-  /// have coordinates. Filtering here keeps several megabytes out of the
-  /// snapshot store, which matters most on the web where it would land in
-  /// `localStorage`. Caching is skipped for the same reason: this is fetched
-  /// once per session and held by a keep-alive provider.
+  /// 18,600 entries and several megabytes — of which roughly 170 are Finnish
+  /// places that actually have coordinates. Downloading that on every cold
+  /// start is what made the corridor view slow, but caching the raw payload
+  /// would put megabytes into `localStorage` on the web.
+  ///
+  /// So the response is trimmed to the entries this app can use *before* it is
+  /// cached, and the trimmed copy is what later loads read. Same parser either
+  /// way — only the size changes.
   Future<List<Port>> ports() async {
+    const cacheKey = '/api/port-call/v1/ports#fi';
+
+    final cached = _cache?.read(cacheKey);
+    if (cached != null) return parsePorts(cached);
+
     final json = await _getJson('/api/port-call/v1/ports', useCache: false);
-    return parsePorts(json)
-        .where((port) => port.isFinnish && port.point != null)
-        .toList(growable: false);
+    final trimmed = _finnishSeaports(json);
+    await _cache?.write(cacheKey, trimmed);
+    return parsePorts(trimmed);
+  }
+
+  /// Rebuilds the ports payload keeping only Finnish entries that have
+  /// coordinates, preserving the shape [parsePorts] expects.
+  static Map<String, Object?> _finnishSeaports(Object? json) {
+    final features = <Object?>[];
+
+    final locations = json is Map ? json['ssnLocations'] : null;
+    final all = locations is Map ? locations['features'] : null;
+
+    if (all is List) {
+      for (final feature in all) {
+        if (feature is! Map) continue;
+        // Entries without coordinates are inland places no ship visits, and
+        // the corridor linker would discard them anyway.
+        if (feature['geometry'] is! Map) continue;
+
+        final properties = feature['properties'];
+        final locode =
+            (properties is Map ? properties['locode'] : null) ??
+            feature['locode'];
+        if (locode is! String || !locode.toUpperCase().startsWith('FI')) {
+          continue;
+        }
+        features.add(feature);
+      }
+    }
+
+    return <String, Object?>{
+      'ssnLocations': <String, Object?>{'features': features},
+    };
   }
 
   /// Scheduled and completed vessel visits to Finnish ports.

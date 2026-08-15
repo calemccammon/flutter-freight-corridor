@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../providers/freight_providers.dart';
 import '../widgets/async_value_view.dart';
+import '../widgets/page_body.dart';
 
 /// The point of the app: rail termini paired with the seaports they feed.
 ///
@@ -29,22 +30,24 @@ class CorridorsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: AsyncValueView<List<FreightCorridor>>(
-        value: corridors,
-        onRetry: () => ref.invalidate(corridorsProvider),
-        emptyTitle: 'No active corridors',
-        emptyMessage:
-            'No cargo train is currently heading for a seaport. This is '
-            'normal outside working hours.',
-        data: (list) => RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(corridorsProvider);
-            await ref.read(corridorsProvider.future);
-          },
-          child: ListView.builder(
-            itemCount: list.length,
-            itemBuilder: (context, index) =>
-                _CorridorTile(corridor: list[index]),
+      body: PageBody(
+        child: AsyncValueView<List<FreightCorridor>>(
+          value: corridors,
+          onRetry: () => ref.invalidate(corridorsProvider),
+          emptyTitle: 'No active corridors',
+          emptyMessage:
+              'No cargo train is currently heading for a seaport. This is '
+              'normal outside working hours.',
+          data: (list) => RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(corridorsProvider);
+              await ref.read(corridorsProvider.future);
+            },
+            child: ListView.builder(
+              itemCount: list.length,
+              itemBuilder: (context, index) =>
+                  _CorridorTile(corridor: list[index]),
+            ),
           ),
         ),
       ),

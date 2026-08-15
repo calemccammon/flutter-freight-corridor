@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/settings.dart';
+import '../widgets/page_body.dart';
 
 /// Everything here writes straight through to storage and invalidates only the
 /// providers that depend on the value changed.
@@ -16,94 +17,96 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        children: <Widget>[
-          _SectionLabel('Home port'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
-              spacing: 8,
-              children: <Widget>[
-                for (final port in HomePort.values)
-                  ChoiceChip(
-                    label: Text(port.label),
-                    selected: settings.homePort == port,
-                    onSelected: (_) => controller.setHomePort(port),
+      body: PageBody(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          children: <Widget>[
+            _SectionLabel('Home port'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  for (final port in HomePort.values)
+                    ChoiceChip(
+                      label: Text(port.label),
+                      selected: settings.homePort == port,
+                      onSelected: (_) => controller.setHomePort(port),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _SectionLabel('Search radius'),
+            ListTile(
+              title: Slider(
+                value: settings.radiusKm,
+                min: 20,
+                max: 300,
+                divisions: 28,
+                label: '${settings.radiusKm.round()} km',
+                onChanged: controller.setRadiusKm,
+              ),
+              subtitle: Text(
+                'Vessels within ${settings.radiusKm.round()} km of '
+                '${settings.homePort.label}',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            _SectionLabel('Refresh interval'),
+            ListTile(
+              title: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  for (final seconds in <int>[10, 20, 60])
+                    ChoiceChip(
+                      label: Text('${seconds}s'),
+                      selected: settings.pollSeconds == seconds,
+                      onSelected: (_) => controller.setPollSeconds(seconds),
+                    ),
+                ],
+              ),
+              subtitle: Text(
+                'Digitraffic allows 60 requests a minute; at '
+                '${settings.pollSeconds}s this app uses '
+                '${(60 / settings.pollSeconds).round()}.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            _SectionLabel('Appearance'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SegmentedButton<ThemeMode>(
+                // A segmented button rather than radio tiles: `RadioListTile`'s
+                // groupValue/onChanged were deprecated in Flutter 3.32 in favour
+                // of a RadioGroup ancestor, and for three mutually exclusive
+                // options this is less markup either way.
+                segments: const <ButtonSegment<ThemeMode>>[
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.system,
+                    label: Text('System'),
+                    icon: Icon(Icons.brightness_auto),
                   ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _SectionLabel('Search radius'),
-          ListTile(
-            title: Slider(
-              value: settings.radiusKm,
-              min: 20,
-              max: 300,
-              divisions: 28,
-              label: '${settings.radiusKm.round()} km',
-              onChanged: controller.setRadiusKm,
-            ),
-            subtitle: Text(
-              'Vessels within ${settings.radiusKm.round()} km of '
-              '${settings.homePort.label}',
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          _SectionLabel('Refresh interval'),
-          ListTile(
-            title: Wrap(
-              spacing: 8,
-              children: <Widget>[
-                for (final seconds in <int>[10, 20, 60])
-                  ChoiceChip(
-                    label: Text('${seconds}s'),
-                    selected: settings.pollSeconds == seconds,
-                    onSelected: (_) => controller.setPollSeconds(seconds),
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.light,
+                    label: Text('Light'),
+                    icon: Icon(Icons.light_mode),
                   ),
-              ],
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.dark,
+                    label: Text('Dark'),
+                    icon: Icon(Icons.dark_mode),
+                  ),
+                ],
+                selected: <ThemeMode>{settings.themeMode},
+                onSelectionChanged: (selection) =>
+                    controller.setThemeMode(selection.first),
+              ),
             ),
-            subtitle: Text(
-              'Digitraffic allows 60 requests a minute; at '
-              '${settings.pollSeconds}s this app uses '
-              '${(60 / settings.pollSeconds).round()}.',
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          _SectionLabel('Appearance'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SegmentedButton<ThemeMode>(
-              // A segmented button rather than radio tiles: `RadioListTile`'s
-              // groupValue/onChanged were deprecated in Flutter 3.32 in favour
-              // of a RadioGroup ancestor, and for three mutually exclusive
-              // options this is less markup either way.
-              segments: const <ButtonSegment<ThemeMode>>[
-                ButtonSegment<ThemeMode>(
-                  value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(Icons.brightness_auto),
-                ),
-                ButtonSegment<ThemeMode>(
-                  value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode),
-                ),
-                ButtonSegment<ThemeMode>(
-                  value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode),
-                ),
-              ],
-              selected: <ThemeMode>{settings.themeMode},
-              onSelectionChanged: (selection) =>
-                  controller.setThemeMode(selection.first),
-            ),
-          ),
-          const Divider(height: 32),
-          const AboutSection(),
-        ],
+            const Divider(height: 32),
+            const AboutSection(),
+          ],
+        ),
       ),
     );
   }

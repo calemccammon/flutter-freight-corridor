@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../providers/freight_providers.dart';
 import '../widgets/async_value_view.dart';
 import '../widgets/common.dart';
+import '../widgets/page_body.dart';
 
 /// One train: what it is made of, and how it is running against timetable.
 class TrainDetailScreen extends ConsumerWidget {
@@ -20,13 +21,15 @@ class TrainDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text('Train ${trainId.split('/').first}')),
-      body: AsyncValueView<FreightTrain?>(
-        value: train,
-        onRetry: () => ref.invalidate(trainDetailProvider(trainId)),
-        isEmpty: (value) => value == null,
-        emptyTitle: 'Train not found',
-        emptyMessage: 'It may have completed its run.',
-        data: (value) => _Detail(train: value!),
+      body: PageBody(
+        child: AsyncValueView<FreightTrain?>(
+          value: train,
+          onRetry: () => ref.invalidate(trainDetailProvider(trainId)),
+          isEmpty: (value) => value == null,
+          emptyTitle: 'Train not found',
+          emptyMessage: 'It may have completed its run.',
+          data: (value) => _Detail(train: value!),
+        ),
       ),
     );
   }
@@ -70,10 +73,95 @@ class _Detail extends StatelessWidget {
             ),
           ],
         ),
-        if (composition != null) ...<Widget>[
-          const SizedBox(height: 24),
-          Text('Composition', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
+        const SizedBox(height: 24),
+        Text('Route', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        train.origin?.stationName ?? 'Unknown origin',
+                        style: theme.textTheme.titleSmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: 16,
+                      color: theme.colorScheme.outline,
+                    ),
+                    Expanded(
+                      child: Text(
+                        train.terminus?.stationName ?? 'Unknown destination',
+                        style: theme.textTheme.titleSmall,
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: <Widget>[
+                    Chip(
+                      avatar: Icon(
+                        train.isMoving ? Icons.speed : Icons.pause,
+                        size: 16,
+                      ),
+                      label: Text(
+                        train.isMoving
+                            ? '${train.speedKmh!.round()} km/h'
+                            : 'Stationary',
+                      ),
+                    ),
+                    if (train.nextStop case final TimetableStop next)
+                      Chip(
+                        avatar: const Icon(Icons.place_outlined, size: 16),
+                        label: Text('Next: ${next.stationName}'),
+                      ),
+                    Chip(
+                      avatar: const Icon(Icons.today_outlined, size: 16),
+                      label: Text(train.departureDate),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text('Composition', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        if (composition == null)
+          // Not a bug, and worth saying so rather than showing nothing:
+          // Digitraffic publishes wagon composition for passenger services,
+          // where seat and carriage detail matters to travellers. Freight
+          // trains return an empty list — verified across every cargo train
+          // running at the time of writing.
+          Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              leading: Icon(
+                Icons.info_outline,
+                color: theme.colorScheme.outline,
+              ),
+              title: const Text('No composition published'),
+              subtitle: const Text(
+                'Digitraffic publishes wagon composition for passenger '
+                'services only; freight trains return none.',
+              ),
+            ),
+          )
+        else ...<Widget>[
           Card(
             margin: EdgeInsets.zero,
             child: Padding(
@@ -129,7 +217,10 @@ class _Detail extends StatelessWidget {
               color: theme.colorScheme.outline,
             ),
             title: Text(stop.stationName),
+            // Stations appear twice — once arriving, once departing — so the
+            // direction has to be spelled out, not left to an arrow glyph.
             subtitle: Text(
+              '${stop.type == StopType.departure ? 'Departure' : 'Arrival'} · '
               '${time.format(stop.scheduledTime.toLocal())} scheduled'
               '${stop.actualTime != null ? ' · ${time.format(stop.actualTime!.toLocal())} actual' : ''}',
             ),

@@ -166,6 +166,69 @@ void main() {
       expect(() => source.portCalls(), throwsA(isA<MarineRequestException>()));
     });
 
+    test('trims the port directory before caching, then reuses it', () async {
+      // The live endpoint returns ~18,600 worldwide LOCODEs; only Finnish
+      // entries with coordinates are usable here, and only those should ever
+      // reach the snapshot store.
+      const directory = <String, Object?>{
+        'ssnLocations': <String, Object?>{
+          'features': <Object?>[
+            <String, Object?>{
+              'locode': 'FIKTK',
+              'geometry': <String, Object?>{
+                'coordinates': <num>[26.9458, 60.4664],
+              },
+              'properties': <String, Object?>{
+                'locode': 'FIKTK',
+                'locationName': 'Kotka',
+              },
+            },
+            <String, Object?>{
+              'locode': 'FIXXX', // Finnish but no coordinates
+              'geometry': null,
+              'properties': <String, Object?>{'locode': 'FIXXX'},
+            },
+            <String, Object?>{
+              'locode': 'NLRTM', // foreign
+              'geometry': <String, Object?>{
+                'coordinates': <num>[4.4777, 51.9244],
+              },
+              'properties': <String, Object?>{'locode': 'NLRTM'},
+            },
+          ],
+        },
+      };
+
+      final store = InMemorySnapshotStore();
+      var fetches = 0;
+
+      MarineDataSource build() => MarineDataSource(
+        MockClient((_) async {
+          fetches++;
+          return http.Response.bytes(utf8.encode(jsonEncode(directory)), 200);
+        }),
+        cache: store,
+      );
+
+      final first = await build().ports();
+      expect(first.map((p) => p.locode), <String>['FIKTK']);
+      expect(fetches, 1);
+
+      // A second data source sharing the store must not hit the network.
+      final second = await build().ports();
+      expect(second.map((p) => p.locode), <String>['FIKTK']);
+      expect(fetches, 1, reason: 'served from the trimmed snapshot');
+
+      final stored =
+          (store.read('/api/port-call/v1/ports#fi')! as Map)['ssnLocations']
+              as Map;
+      expect(
+        (stored['features'] as List).length,
+        1,
+        reason: 'foreign and coordinate-less entries never reach the store',
+      );
+    });
+
     test('treats a non-200 as a failure', () async {
       final source = MarineDataSource(
         MockClient((_) async => http.Response('nope', 503)),

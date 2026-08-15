@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/freight_providers.dart';
 import '../widgets/async_value_view.dart';
 import '../widgets/common.dart';
+import '../widgets/page_body.dart';
 
 /// Every cargo train currently running, worst delay first.
 class RailScreen extends ConsumerWidget {
@@ -31,21 +32,23 @@ class RailScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: AsyncValueView<List<FreightTrain>>(
-        value: trains,
-        onRetry: () => ref.invalidate(cargoTrainsProvider),
-        emptyTitle: 'No cargo trains match',
-        emptyMessage:
-            'Finnish freight rail is quiet at some hours — try clearing the '
-            'search, or check back shortly.',
-        data: (list) => RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(cargoTrainsProvider);
-            await ref.read(cargoTrainsProvider.future);
-          },
-          child: ListView.builder(
-            itemCount: list.length,
-            itemBuilder: (context, index) => _TrainTile(train: list[index]),
+      body: PageBody(
+        child: AsyncValueView<List<FreightTrain>>(
+          value: trains,
+          onRetry: () => ref.invalidate(cargoTrainsProvider),
+          emptyTitle: 'No cargo trains match',
+          emptyMessage:
+              'Finnish freight rail is quiet at some hours — try clearing the '
+              'search, or check back shortly.',
+          data: (list) => RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(cargoTrainsProvider);
+              await ref.read(cargoTrainsProvider.future);
+            },
+            child: ListView.builder(
+              itemCount: list.length,
+              itemBuilder: (context, index) => _TrainTile(train: list[index]),
+            ),
           ),
         ),
       ),
