@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.0"
+          channel: stable
+          cache: true
+
+      # One call bootstraps both workspace members.
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Formatting is checked BEFORE code generation, while only hand-written
+      # files exist. Generated sources are gitignored and would otherwise have
+      # to be excluded here.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      # ferry emits ~49k lines of built_value types for the Digitraffic
+      # schema. They are regenerated here rather than committed — see README.
+      # `--delete-conflicting-outputs` was removed in build_runner 2.15.
+      - name: Generate GraphQL code
+        run: dart run build_runner build
+        working-directory: app
+
+      # Must run after codegen: the data source imports generated types.
+      - name: Analyze
+        run: flutter analyze
+
+      # Pure Dart, no Flutter binding needed, so this runs in about a second.
+      - name: Core package tests
+        run: dart test
+        working-directory: packages/freight_core
+
+      # Every external call is mocked; no network and no secrets required.
+      - name: App tests
+        run: flutter test --coverage
+        working-directory: app
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: app/coverage/
+
+      - name: Build web
+        run: flutter build web --release --no-wasm-dry-run
+        working-directory: app
+
+      - name: Build Android APK
+        run: flutter build apk --debug
+        working-directory: app

@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:freight_core/freight_core.dart';
 import 'package:freight_corridor/data/rail_data_source.dart';
 import 'package:gql_exec/gql_exec.dart' as gql;
-import 'package:gql_link/gql_link.dart';
 
 /// A GraphQL response shaped exactly like the live rail API's, including the
 /// `__typename` fields ferry adds to every selection set.

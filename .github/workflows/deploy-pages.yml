@@ -1,0 +1,67 @@
+name: Deploy Web Demo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.0"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart run build_runner build
+        working-directory: app
+      - run: flutter test
+        working-directory: app
+
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    # Nothing reaches the public demo without a green test run first.
+    needs: test
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.0"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart run build_runner build
+        working-directory: app
+
+      # The base href needs BOTH slashes for a GitHub Pages project site.
+      # Without it every asset resolves against the domain root and 404s.
+      - name: Build web
+        run: >
+          flutter build web --release --no-wasm-dry-run
+          --base-href /flutter-freight-corridor/
+        working-directory: app
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/build/web
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,5 +1,11 @@
-// Throwaway live smoke test: proves the data layer maps real responses.
-// Not part of the app or the test suite.
+// Live smoke check: runs the real data layer against the real Digitraffic
+// APIs and prints what came back. Not part of the app or the test suite — the
+// automated tests are all offline, and this exists to confirm the mapping
+// still matches reality after an API change.
+//
+// Run with: dart run tool/smoke.dart
+//
+// ignore_for_file: avoid_print
 import 'package:ferry/ferry.dart';
 import 'package:freight_corridor/data/freight_repository.dart';
 import 'package:freight_corridor/data/marine_data_source.dart';
