@@ -1,0 +1,13 @@
+name: flutter_freight_corridor_workspace
+publish_to: none
+
+# Pub workspace root (Dart 3.6+). Declaring both packages here means a single
+# `flutter pub get` bootstraps everything and one shared pubspec.lock pins the
+# resolution, so the app and the core package can never drift onto different
+# versions of a shared transitive dependency.
+environment:
+  sdk: ^3.13.0
+
+workspace:
+  - app
+  - packages/freight_core

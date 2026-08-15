@@ -1,0 +1,18 @@
+name: freight_core
+description: Pure-Dart domain logic for freight rail and maritime cargo tracking.
+version: 1.0.0
+publish_to: none
+resolution: workspace
+
+# Deliberately depends on NOTHING from Flutter and needs no code generation.
+# `dart test` runs this package in under a second, and every rule in here can be
+# reasoned about without a widget tree, a device, or a network.
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  collection: ^1.19.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  test: ^1.26.0

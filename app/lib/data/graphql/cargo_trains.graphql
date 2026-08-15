@@ -1,0 +1,75 @@
+# Operations against the Fintraffic Digitraffic railway GraphQL API.
+#
+# `trainCategory: "Cargo"` is what makes this a freight app rather than a
+# passenger one — the same endpoint serves both, and the filter is applied
+# server-side so we never download commuter traffic we would throw away.
+
+fragment TrainSummary on Train {
+  trainNumber
+  departureDate
+  runningCurrently
+  operator {
+    shortCode
+    name
+  }
+  trainType {
+    name
+  }
+  # `take: 1` with a descending sort gives the single most recent ping.
+  # `location` is [longitude, latitude] — the reverse of the usual convention.
+  trainLocations(orderBy: { timestamp: DESCENDING }, take: 1) {
+    speed
+    timestamp
+    location
+  }
+}
+
+fragment StopRow on TimeTableRow {
+  type
+  scheduledTime
+  actualTime
+  differenceInMinutes
+  cancelled
+  station {
+    name
+    shortCode
+    # Station coordinates are what let us pair a rail terminus with a seaport
+    # without shipping a hand-maintained lookup table.
+    location
+  }
+}
+
+query CargoTrains {
+  currentlyRunningTrains(
+    where: { trainType: { trainCategory: { name: { equals: "Cargo" } } } }
+  ) {
+    ...TrainSummary
+    timeTableRows {
+      ...StopRow
+    }
+  }
+}
+
+query TrainDetail($trainNumber: Int!, $departureDate: Date!) {
+  train(trainNumber: $trainNumber, departureDate: $departureDate) {
+    ...TrainSummary
+    timeTableRows {
+      ...StopRow
+    }
+    compositions {
+      journeySections {
+        maximumSpeed
+        totalLength
+        wagons {
+          salesNumber
+          length
+          wagonType
+        }
+        locomotives {
+          locomotiveType
+          powerTypeAbbreviation
+        }
+      }
+    }
+  }
+}

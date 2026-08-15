@@ -1,0 +1,6 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Fetched once from the live Digitraffic endpoint and committed so that code
+# generation never depends on the network. Not authored by hand.
+app/lib/data/graphql/schema.graphql linguist-generated=true

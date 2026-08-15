@@ -1,0 +1,64 @@
+name: freight_corridor
+description: Live freight rail and maritime cargo tracking across the Finnish transport corridor.
+publish_to: none
+version: 1.0.0+1
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Domain logic lives next door, in a package that cannot import Flutter.
+  freight_core: ^1.0.0
+
+  # State management. Riverpod 3.x — note `Ref` is non-generic here, unlike 2.x.
+  # Providers are declared by hand rather than generated; see the note below.
+  flutter_riverpod: ^3.4.2
+
+  # Routing. URL-based routing is what makes the web demo deep-linkable.
+  go_router: ^17.5.0
+
+  # GraphQL transport for the rail API, which genuinely speaks GraphQL upstream.
+  ferry: ^0.16.1
+  gql_http_link: ^1.2.0
+  built_value: ^8.12.7
+
+  # REST transport for the maritime APIs.
+  http: ^1.6.0
+
+  cupertino_icons: ^1.0.8
+  flutter_map: ^8.3.1
+  intl: ^0.20.3
+  latlong2: ^0.10.1
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  build_runner: ^2.4.0
+  ferry_generator: ^0.12.0
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.5
+
+# Two code generators cannot both be present here, and the resolver says so
+# rather than failing subtly later:
+#
+#   * riverpod_generator >=4.0.6 requires analyzer ^13.0.0
+#   * ferry_generator (all published versions) caps analyzer <13.0.0
+#
+# GraphQL type-safety is the point of this project, so ferry keeps its
+# generator and Riverpod providers are written by hand. Declaring providers
+# explicitly costs a few lines each and makes the actual provider types visible
+# in the source, which suits a project meant to be read.
+#
+# riverpod_lint / custom_lint are absent for the same class of reason:
+# riverpod_lint 3.1.8 needs analyzer_plugin ^0.14.0 while every
+# custom_lint >=0.7.4 pins ^0.13.0. flutter_lints plus strict-casts and
+# strict-raw-types in analysis_options.yaml cover the ground that matters.
+
+flutter:
+  uses-material-design: true

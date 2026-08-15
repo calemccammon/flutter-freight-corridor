@@ -1,0 +1,38 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+
+# Per-package lockfiles: the workspace root owns the single committed lock.
+app/pubspec.lock
+packages/freight_core/pubspec.lock
+
+# Generated code is NOT committed.
+#
+# ferry_generator emits built_value classes and serializers for the entire
+# Digitraffic rail schema (129 types) regardless of what we actually query.
+# Measured: two queries produce 49,155 lines across 12 files (1.4 MB), which
+# would outweigh the hand-written source roughly 25 to 1 and completely
+# misrepresent the size of this project. CI regenerates it from the committed
+# schema.graphql before analyzing, so builds stay reproducible without it.
+*.g.dart
+*.gql.dart
+*.ast.gql.dart
+*.data.gql.dart
+*.req.gql.dart
+*.var.gql.dart
+**/__generated__/
+
+# Android
+app/android/.gradle/
+app/android/local.properties
+app/android/app/debug/
+app/android/app/profile/
+app/android/app/release/
+*.jks
+*.keystore

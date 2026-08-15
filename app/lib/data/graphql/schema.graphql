@@ -1,0 +1,1042 @@
+"""This directive allows results to be deferred during execution"""
+directive @defer(
+  """Deferred behaviour is controlled by this argument"""
+  if: Boolean! = true
+
+  """A unique label that represents the fragment being deferred"""
+  label: String
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+This directive disables error propagation when a non nullable field returns null for the given operation.
+"""
+directive @experimental_disableErrorPropagation on QUERY | MUTATION | SUBSCRIPTION
+
+"""# PRIMITIVE FILTERS"""
+input BooleanWhere {
+  equals: Boolean
+  unequals: Boolean
+}
+
+type CategoryCode {
+  code: String!
+  name: String!
+  validFrom: Date!
+  validTo: Date
+}
+
+input CategoryCodeCollectionWhere {
+  contains: CategoryCodeWhere
+}
+
+input CategoryCodeOrderBy {
+  code: OrderDirection
+  name: OrderDirection
+  validFrom: OrderDirection
+  validTo: OrderDirection
+}
+
+input CategoryCodeWhere {
+  code: StringWhere
+  name: StringWhere
+  validFrom: DateWhere
+  validTo: DateWhere
+  and: [CategoryCodeWhere]
+  or: [CategoryCodeWhere]
+}
+
+type Cause {
+  categoryCode: CategoryCode!
+  detailedCategoryCode: DetailedCategoryCode
+  thirdCategoryCode: ThirdCategoryCode
+}
+
+input CauseCollectionWhere {
+  contains: CauseWhere
+}
+
+input CauseOrderBy {
+  categoryCode: CategoryCodeOrderBy
+  detailedCategoryCode: DetailedCategoryCodeOrderBy
+  thirdCategoryCode: ThirdCategoryCodeOrderBy
+}
+
+input CauseWhere {
+  categoryCode: CategoryCodeWhere
+  detailedCategoryCode: DetailedCategoryCodeWhere
+  thirdCategoryCode: ThirdCategoryCodeWhere
+  and: [CauseWhere]
+  or: [CauseWhere]
+}
+
+type Composition {
+  version: String!
+  train: Train
+  journeySections(where: JourneySectionWhere, skip: Int, take: Int, orderBy: [JourneySectionOrderBy]): [JourneySection!]!
+}
+
+input CompositionCollectionWhere {
+  contains: CompositionWhere
+}
+
+input CompositionOrderBy {
+  version: OrderDirection
+  train: TrainOrderBy
+}
+
+input CompositionWhere {
+  version: StringWhere
+  train: TrainWhere
+  journeySections: JourneySectionCollectionWhere
+  and: [CompositionWhere]
+  or: [CompositionWhere]
+}
+
+input CoordinateWhere {
+  inside: [Float!]!
+}
+
+"""An RFC-3339 compliant Full Date Scalar"""
+scalar Date
+
+"""A slightly refined version of RFC-3339 compliant DateTime Scalar"""
+scalar DateTime
+
+input DateTimeWhere {
+  equals: DateTime
+  unequals: DateTime
+  greaterThan: DateTime
+  lessThan: DateTime
+}
+
+input DateWhere {
+  equals: Date
+  unequals: Date
+  greaterThan: Date
+  lessThan: Date
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+input DayOfWeekCollectionWhere {
+  equals: [DayOfWeek!]!
+  notEquals: [DayOfWeek!]!
+}
+
+input DayOfWeekOrderBy {
+  direction: OrderDirection!
+}
+
+input DayOfWeekWhere {
+  equals: String
+  unequals: String
+}
+
+type DetailedCategoryCode {
+  code: String!
+  name: String!
+  validFrom: Date!
+  validTo: Date
+}
+
+input DetailedCategoryCodeCollectionWhere {
+  contains: DetailedCategoryCodeWhere
+}
+
+input DetailedCategoryCodeOrderBy {
+  code: OrderDirection
+  name: OrderDirection
+  validFrom: OrderDirection
+  validTo: OrderDirection
+}
+
+input DetailedCategoryCodeWhere {
+  code: StringWhere
+  name: StringWhere
+  validFrom: DateWhere
+  validTo: DateWhere
+  and: [DetailedCategoryCodeWhere]
+  or: [DetailedCategoryCodeWhere]
+}
+
+input EnumWhere {
+  equals: String
+  unequals: String
+}
+
+enum EstimateSourceType {
+  LIIKE_USER
+  MIKU_USER
+  LIIKE_AUTOMATIC
+  UNKNOWN
+  COMBOCALC
+}
+
+input IntWhere {
+  equals: Int
+  unequals: Int
+  greaterThan: Int
+  lessThan: Int
+}
+
+type JourneySection {
+  maximumSpeed: Int!
+  totalLength: Int!
+  startTimeTableRow: TimeTableRow
+  endTimeTableRow: TimeTableRow
+  wagons(where: WagonWhere, skip: Int, take: Int, orderBy: [WagonOrderBy]): [Wagon!]!
+  locomotives(where: LocomotiveWhere, skip: Int, take: Int, orderBy: [LocomotiveOrderBy]): [Locomotive!]!
+}
+
+input JourneySectionCollectionWhere {
+  contains: JourneySectionWhere
+}
+
+input JourneySectionOrderBy {
+  maximumSpeed: OrderDirection
+  totalLength: OrderDirection
+  startTimeTableRow: TimeTableRowOrderBy
+  endTimeTableRow: TimeTableRowOrderBy
+}
+
+input JourneySectionWhere {
+  maximumSpeed: IntWhere
+  totalLength: IntWhere
+  startTimeTableRow: TimeTableRowWhere
+  endTimeTableRow: TimeTableRowWhere
+  wagons: WagonCollectionWhere
+  locomotives: LocomotiveCollectionWhere
+  and: [JourneySectionWhere]
+  or: [JourneySectionWhere]
+}
+
+type Locomotive {
+  location: Int!
+  locomotiveType: String!
+  powerTypeAbbreviation: String!
+  vehicleNumber: String
+}
+
+input LocomotiveCollectionWhere {
+  contains: LocomotiveWhere
+}
+
+input LocomotiveOrderBy {
+  location: OrderDirection
+  locomotiveType: OrderDirection
+  powerTypeAbbreviation: OrderDirection
+  vehicleNumber: OrderDirection
+}
+
+input LocomotiveWhere {
+  location: IntWhere
+  locomotiveType: StringWhere
+  powerTypeAbbreviation: StringWhere
+  vehicleNumber: StringWhere
+  and: [LocomotiveWhere]
+  or: [LocomotiveWhere]
+}
+
+type Operator {
+  name: String!
+  shortCode: String!
+  uicCode: Int!
+}
+
+input OperatorCollectionWhere {
+  contains: OperatorWhere
+}
+
+input OperatorOrderBy {
+  name: OrderDirection
+  shortCode: OrderDirection
+  uicCode: OrderDirection
+}
+
+input OperatorWhere {
+  name: StringWhere
+  shortCode: StringWhere
+  uicCode: IntWhere
+  and: [OperatorWhere]
+  or: [OperatorWhere]
+}
+
+enum OrderDirection {
+  ASCENDING
+  DESCENDING
+}
+
+type PassengerInformationAudio {
+  text: PassengerInformationTextContent!
+  deliveryRules: PassengerInformationAudioDeliveryRules!
+  messageId: String!
+  messageVersion: Int!
+}
+
+input PassengerInformationAudioCollectionWhere {
+  contains: PassengerInformationAudioWhere
+}
+
+type PassengerInformationAudioDeliveryRules {
+  deliveryType: String
+  eventType: String
+  startDateTime: DateTime
+  endDateTime: DateTime
+  startTime: String
+  endTime: String
+  weekDays(where: DayOfWeekWhere, skip: Int, take: Int, orderBy: [DayOfWeekOrderBy]): [DayOfWeek!]!
+  deliveryAt: DateTime
+  repetitions: Int
+  repeatEvery: Int
+}
+
+input PassengerInformationAudioDeliveryRulesCollectionWhere {
+  contains: PassengerInformationAudioDeliveryRulesWhere
+}
+
+input PassengerInformationAudioDeliveryRulesOrderBy {
+  deliveryType: OrderDirection
+  eventType: OrderDirection
+  startDateTime: OrderDirection
+  endDateTime: OrderDirection
+  startTime: OrderDirection
+  endTime: OrderDirection
+  deliveryAt: OrderDirection
+  repetitions: OrderDirection
+  repeatEvery: OrderDirection
+}
+
+input PassengerInformationAudioDeliveryRulesWhere {
+  deliveryType: StringWhere
+  eventType: StringWhere
+  startDateTime: DateTimeWhere
+  endDateTime: DateTimeWhere
+  startTime: StringWhere
+  endTime: StringWhere
+  weekDays: DayOfWeekCollectionWhere
+  deliveryAt: DateTimeWhere
+  repetitions: IntWhere
+  repeatEvery: IntWhere
+  and: [PassengerInformationAudioDeliveryRulesWhere]
+  or: [PassengerInformationAudioDeliveryRulesWhere]
+}
+
+input PassengerInformationAudioOrderBy {
+  text: PassengerInformationTextContentOrderBy
+  deliveryRules: PassengerInformationAudioDeliveryRulesOrderBy
+  messageId: OrderDirection
+  messageVersion: OrderDirection
+}
+
+input PassengerInformationAudioWhere {
+  text: PassengerInformationTextContentWhere
+  deliveryRules: PassengerInformationAudioDeliveryRulesWhere
+  messageId: StringWhere
+  messageVersion: IntWhere
+  and: [PassengerInformationAudioWhere]
+  or: [PassengerInformationAudioWhere]
+}
+
+type PassengerInformationMessage {
+  id: String!
+  version: Int!
+  creationDateTime: DateTime!
+  startValidity: DateTime!
+  endValidity: DateTime!
+  trainDepartureDate: Date
+  trainNumber: Int
+  train: Train
+  messageStations(where: PassengerInformationMessageStationWhere, skip: Int, take: Int, orderBy: [PassengerInformationMessageStationOrderBy]): [PassengerInformationMessageStation!]!
+  audio: PassengerInformationAudio
+  video: PassengerInformationVideo
+}
+
+input PassengerInformationMessageCollectionWhere {
+  contains: PassengerInformationMessageWhere
+}
+
+input PassengerInformationMessageOrderBy {
+  id: OrderDirection
+  version: OrderDirection
+  creationDateTime: OrderDirection
+  startValidity: OrderDirection
+  endValidity: OrderDirection
+  trainDepartureDate: OrderDirection
+  trainNumber: OrderDirection
+  train: TrainOrderBy
+  audio: PassengerInformationAudioOrderBy
+  video: PassengerInformationVideoOrderBy
+}
+
+type PassengerInformationMessageStation {
+  stationShortCode: String!
+  station: Station!
+  message: PassengerInformationMessage!
+  messageId: String!
+  messageVersion: Int!
+}
+
+input PassengerInformationMessageStationCollectionWhere {
+  contains: PassengerInformationMessageStationWhere
+}
+
+input PassengerInformationMessageStationOrderBy {
+  stationShortCode: OrderDirection
+  station: StationOrderBy
+  message: PassengerInformationMessageOrderBy
+  messageId: OrderDirection
+  messageVersion: OrderDirection
+}
+
+input PassengerInformationMessageStationWhere {
+  stationShortCode: StringWhere
+  station: StationWhere
+  message: PassengerInformationMessageWhere
+  messageId: StringWhere
+  messageVersion: IntWhere
+  and: [PassengerInformationMessageStationWhere]
+  or: [PassengerInformationMessageStationWhere]
+}
+
+input PassengerInformationMessageWhere {
+  id: StringWhere
+  version: IntWhere
+  creationDateTime: DateTimeWhere
+  startValidity: DateTimeWhere
+  endValidity: DateTimeWhere
+  trainDepartureDate: DateWhere
+  trainNumber: IntWhere
+  train: TrainWhere
+  messageStations: PassengerInformationMessageStationCollectionWhere
+  audio: PassengerInformationAudioWhere
+  video: PassengerInformationVideoWhere
+  and: [PassengerInformationMessageWhere]
+  or: [PassengerInformationMessageWhere]
+}
+
+type PassengerInformationTextContent {
+  fi: String
+  sv: String
+  en: String
+}
+
+input PassengerInformationTextContentCollectionWhere {
+  contains: PassengerInformationTextContentWhere
+}
+
+input PassengerInformationTextContentOrderBy {
+  fi: OrderDirection
+  sv: OrderDirection
+  en: OrderDirection
+}
+
+input PassengerInformationTextContentWhere {
+  fi: StringWhere
+  sv: StringWhere
+  en: StringWhere
+  and: [PassengerInformationTextContentWhere]
+  or: [PassengerInformationTextContentWhere]
+}
+
+type PassengerInformationVideo {
+  text: PassengerInformationTextContent!
+  deliveryRules: PassengerInformationVideoDeliveryRules!
+  messageId: String!
+  messageVersion: Int!
+}
+
+input PassengerInformationVideoCollectionWhere {
+  contains: PassengerInformationVideoWhere
+}
+
+type PassengerInformationVideoDeliveryRules {
+  deliveryType: String
+  startDateTime: DateTime
+  endDateTime: DateTime
+  startTime: String
+  endTime: String
+  weekDays(where: DayOfWeekWhere, skip: Int, take: Int, orderBy: [DayOfWeekOrderBy]): [DayOfWeek!]!
+}
+
+input PassengerInformationVideoDeliveryRulesCollectionWhere {
+  contains: PassengerInformationVideoDeliveryRulesWhere
+}
+
+input PassengerInformationVideoDeliveryRulesOrderBy {
+  deliveryType: OrderDirection
+  startDateTime: OrderDirection
+  endDateTime: OrderDirection
+  startTime: OrderDirection
+  endTime: OrderDirection
+}
+
+input PassengerInformationVideoDeliveryRulesWhere {
+  deliveryType: StringWhere
+  startDateTime: DateTimeWhere
+  endDateTime: DateTimeWhere
+  startTime: StringWhere
+  endTime: StringWhere
+  weekDays: DayOfWeekCollectionWhere
+  and: [PassengerInformationVideoDeliveryRulesWhere]
+  or: [PassengerInformationVideoDeliveryRulesWhere]
+}
+
+input PassengerInformationVideoOrderBy {
+  text: PassengerInformationTextContentOrderBy
+  deliveryRules: PassengerInformationVideoDeliveryRulesOrderBy
+  messageId: OrderDirection
+  messageVersion: OrderDirection
+}
+
+input PassengerInformationVideoWhere {
+  text: PassengerInformationTextContentWhere
+  deliveryRules: PassengerInformationVideoDeliveryRulesWhere
+  messageId: StringWhere
+  messageVersion: IntWhere
+  and: [PassengerInformationVideoWhere]
+  or: [PassengerInformationVideoWhere]
+}
+
+type Query {
+  train(trainNumber: Int!, departureDate: Date!, where: TrainWhere, skip: Int, take: Int, orderBy: [TrainOrderBy]): [Train!]!
+  trainsByDepartureDate(departureDate: Date!, where: TrainWhere, skip: Int, take: Int, orderBy: [TrainOrderBy]): [Train!]!
+  trainsByVersionGreaterThan(version: String!, where: TrainWhere, skip: Int, take: Int, orderBy: [TrainOrderBy]): [Train!]!
+  trainsByStationAndQuantity(station: String!, arrivedTrains: Int, arrivingTrains: Int, departedTrains: Int, departingTrains: Int, includeNonStopping: Boolean, trainCategories: [String], where: TrainWhere, skip: Int, take: Int, orderBy: [TrainOrderBy]): [Train!]!
+  trainsByRoute(departureStation: String!, arrivalStation: String!, departureDate: Date, startDate: DateTime, endDate: DateTime, limit: Int, includeNonStopping: Boolean, where: TrainWhere, skip: Int, take: Int, orderBy: [TrainOrderBy]): [Train!]!
+  currentlyRunningTrains(where: TrainWhere, skip: Int, take: Int, orderBy: [TrainOrderBy]): [Train!]!
+  latestTrainLocations(where: TrainLocationWhere, skip: Int, take: Int, orderBy: [TrainLocationOrderBy]): [TrainLocation!]!
+  compositionsGreaterThanVersion(version: String!, where: CompositionWhere, skip: Int, take: Int, orderBy: [CompositionOrderBy]): [Composition!]!
+  trainTrackingMessagesByVersionGreaterThan(version: String!, where: TrainTrackingMessageWhere, skip: Int, take: Int, orderBy: [TrainTrackingMessageOrderBy]): [TrainTrackingMessage!]!
+  routesetMessagesByVersionGreaterThan(version: String!, where: RoutesetMessageWhere, skip: Int, take: Int, orderBy: [RoutesetMessageOrderBy]): [RoutesetMessage!]!
+  stations(where: StationWhere, skip: Int, take: Int, orderBy: [StationOrderBy]): [Station!]!
+  passengerInformationMessages(where: PassengerInformationMessageWhere, skip: Int, take: Int, orderBy: [PassengerInformationMessageOrderBy]): [PassengerInformationMessage!]!
+  passengerInformationMessagesByStation(stationShortCode: String!, onlyGeneral: Boolean, where: PassengerInformationMessageWhere, skip: Int, take: Int, orderBy: [PassengerInformationMessageOrderBy]): [PassengerInformationMessage!]!
+  passengerInformationMessagesByTrain(trainNumber: Int!, departureDate: Date!, where: PassengerInformationMessageWhere, skip: Int, take: Int, orderBy: [PassengerInformationMessageOrderBy]): [PassengerInformationMessage!]!
+}
+
+type Routesection {
+  sectionId: String!
+  commercialTrackId: String
+  routesetId: Int!
+  station: Station
+}
+
+input RoutesectionCollectionWhere {
+  contains: RoutesectionWhere
+}
+
+input RoutesectionOrderBy {
+  sectionId: OrderDirection
+  commercialTrackId: OrderDirection
+  routesetId: OrderDirection
+  station: StationOrderBy
+}
+
+input RoutesectionWhere {
+  sectionId: StringWhere
+  commercialTrackId: StringWhere
+  routesetId: IntWhere
+  station: StationWhere
+  and: [RoutesectionWhere]
+  or: [RoutesectionWhere]
+}
+
+type RoutesetMessage {
+  id: Int!
+  version: String!
+  messageTime: DateTime!
+  routeType: String!
+  clientSystem: String!
+  routesections(where: RoutesectionWhere, skip: Int, take: Int, orderBy: [RoutesectionOrderBy]): [Routesection!]!
+  train: Train
+}
+
+input RoutesetMessageCollectionWhere {
+  contains: RoutesetMessageWhere
+}
+
+input RoutesetMessageOrderBy {
+  id: OrderDirection
+  version: OrderDirection
+  messageTime: OrderDirection
+  routeType: OrderDirection
+  clientSystem: OrderDirection
+  train: TrainOrderBy
+}
+
+input RoutesetMessageWhere {
+  id: IntWhere
+  version: StringWhere
+  messageTime: DateTimeWhere
+  routeType: StringWhere
+  clientSystem: StringWhere
+  routesections: RoutesectionCollectionWhere
+  train: TrainWhere
+  and: [RoutesetMessageWhere]
+  or: [RoutesetMessageWhere]
+}
+
+type Station {
+  passengerTraffic: Boolean!
+  countryCode: String!
+  location: [Float!]!
+  name: String!
+  shortCode: String!
+  uicCode: Int!
+  type: StationType!
+  timeTableRows(where: TimeTableRowWhere, skip: Int, take: Int, orderBy: [TimeTableRowOrderBy]): [TimeTableRow!]!
+  stationMessages(where: PassengerInformationMessageStationWhere, skip: Int, take: Int, orderBy: [PassengerInformationMessageStationOrderBy]): [PassengerInformationMessageStation!]!
+}
+
+input StationCollectionWhere {
+  contains: StationWhere
+}
+
+input StationOrderBy {
+  passengerTraffic: OrderDirection
+  countryCode: OrderDirection
+  name: OrderDirection
+  shortCode: OrderDirection
+  uicCode: OrderDirection
+  type: OrderDirection
+}
+
+enum StationType {
+  STATION
+  STOPPING_POINT
+  TURNOUT_IN_THE_OPEN_LINE
+}
+
+input StationWhere {
+  passengerTraffic: BooleanWhere
+  countryCode: StringWhere
+  name: StringWhere
+  shortCode: StringWhere
+  uicCode: IntWhere
+  type: EnumWhere
+  timeTableRows: TimeTableRowCollectionWhere
+  stationMessages: PassengerInformationMessageStationCollectionWhere
+  and: [StationWhere]
+  or: [StationWhere]
+}
+
+input StringWhere {
+  equals: String
+  unequals: String
+  greaterThan: String
+  lessThan: String
+}
+
+type ThirdCategoryCode {
+  code: String!
+  name: String!
+  description: String
+  validFrom: Date!
+  validTo: Date
+}
+
+input ThirdCategoryCodeCollectionWhere {
+  contains: ThirdCategoryCodeWhere
+}
+
+input ThirdCategoryCodeOrderBy {
+  code: OrderDirection
+  name: OrderDirection
+  description: OrderDirection
+  validFrom: OrderDirection
+  validTo: OrderDirection
+}
+
+input ThirdCategoryCodeWhere {
+  code: StringWhere
+  name: StringWhere
+  description: StringWhere
+  validFrom: DateWhere
+  validTo: DateWhere
+  and: [ThirdCategoryCodeWhere]
+  or: [ThirdCategoryCodeWhere]
+}
+
+type TimeTableRow {
+  type: TimeTableRowType!
+  trainStopping: Boolean!
+  commercialStop: Boolean
+  commercialTrack: String
+  cancelled: Boolean!
+  scheduledTime: DateTime!
+  actualTime: DateTime
+  differenceInMinutes: Int
+  liveEstimateTime: DateTime
+  estimateSourceType: EstimateSourceType
+  unknownDelay: Boolean
+  stopSector: String
+  station: Station
+  train: Train!
+  causes(where: CauseWhere, skip: Int, take: Int, orderBy: [CauseOrderBy]): [Cause!]!
+}
+
+input TimeTableRowCollectionWhere {
+  contains: TimeTableRowWhere
+}
+
+input TimeTableRowOrderBy {
+  type: OrderDirection
+  trainStopping: OrderDirection
+  commercialStop: OrderDirection
+  commercialTrack: OrderDirection
+  cancelled: OrderDirection
+  scheduledTime: OrderDirection
+  actualTime: OrderDirection
+  differenceInMinutes: OrderDirection
+  liveEstimateTime: OrderDirection
+  estimateSourceType: OrderDirection
+  unknownDelay: OrderDirection
+  stopSector: OrderDirection
+  station: StationOrderBy
+  train: TrainOrderBy
+}
+
+enum TimeTableRowType {
+  ARRIVAL
+  DEPARTURE
+}
+
+input TimeTableRowWhere {
+  type: EnumWhere
+  trainStopping: BooleanWhere
+  commercialStop: BooleanWhere
+  commercialTrack: StringWhere
+  cancelled: BooleanWhere
+  scheduledTime: DateTimeWhere
+  actualTime: DateTimeWhere
+  differenceInMinutes: IntWhere
+  liveEstimateTime: DateTimeWhere
+  estimateSourceType: EnumWhere
+  unknownDelay: BooleanWhere
+  stopSector: StringWhere
+  station: StationWhere
+  train: TrainWhere
+  causes: CauseCollectionWhere
+  and: [TimeTableRowWhere]
+  or: [TimeTableRowWhere]
+}
+
+"""# ENUMS"""
+enum TimetableType {
+  REGULAR
+  ADHOC
+}
+
+type TrackRange {
+  startTrack: String!
+  startKilometres: Int!
+  startMetres: Int!
+  endTrack: String!
+  endKilometres: Int!
+  endMetres: Int!
+}
+
+input TrackRangeCollectionWhere {
+  contains: TrackRangeWhere
+}
+
+input TrackRangeOrderBy {
+  startTrack: OrderDirection
+  startKilometres: OrderDirection
+  startMetres: OrderDirection
+  endTrack: OrderDirection
+  endKilometres: OrderDirection
+  endMetres: OrderDirection
+}
+
+input TrackRangeWhere {
+  startTrack: StringWhere
+  startKilometres: IntWhere
+  startMetres: IntWhere
+  endTrack: StringWhere
+  endKilometres: IntWhere
+  endMetres: IntWhere
+  and: [TrackRangeWhere]
+  or: [TrackRangeWhere]
+}
+
+type TrackSection {
+  id: Int!
+  trackSectionCode: String!
+  stationShortCode: String!
+  station: Station
+  ranges(where: TrackRangeWhere, skip: Int, take: Int, orderBy: [TrackRangeOrderBy]): [TrackRange!]!
+}
+
+input TrackSectionCollectionWhere {
+  contains: TrackSectionWhere
+}
+
+input TrackSectionOrderBy {
+  id: OrderDirection
+  trackSectionCode: OrderDirection
+  stationShortCode: OrderDirection
+  station: StationOrderBy
+}
+
+input TrackSectionWhere {
+  id: IntWhere
+  trackSectionCode: StringWhere
+  stationShortCode: StringWhere
+  station: StationWhere
+  ranges: TrackRangeCollectionWhere
+  and: [TrackSectionWhere]
+  or: [TrackSectionWhere]
+}
+
+type Train {
+  cancelled: Boolean!
+  commuterLineid: String
+  deleted: Boolean
+  departureDate: Date!
+  runningCurrently: Boolean!
+  timetableAcceptanceDate: DateTime!
+  timetableType: TimetableType!
+  trainNumber: Int!
+
+  """ Represents the version number of a train. Will be parsed as a number in where clauses.
+  """
+  version: String!
+  operator: Operator!
+  trainType: TrainType!
+  timeTableRows(where: TimeTableRowWhere, skip: Int, take: Int, orderBy: [TimeTableRowOrderBy]): [TimeTableRow!]!
+  trainLocations(where: TrainLocationWhere, skip: Int, take: Int, orderBy: [TrainLocationOrderBy]): [TrainLocation!]!
+  compositions(where: CompositionWhere, skip: Int, take: Int, orderBy: [CompositionOrderBy]): [Composition!]!
+  trainTrackingMessages(where: TrainTrackingMessageWhere, skip: Int, take: Int, orderBy: [TrainTrackingMessageOrderBy]): [TrainTrackingMessage!]!
+  routesetMessages(where: RoutesetMessageWhere, skip: Int, take: Int, orderBy: [RoutesetMessageOrderBy]): [RoutesetMessage!]!
+  passengerInformationMessages(where: PassengerInformationMessageWhere, skip: Int, take: Int, orderBy: [PassengerInformationMessageOrderBy]): [PassengerInformationMessage!]!
+}
+
+type TrainCategory {
+  name: String!
+}
+
+input TrainCategoryCollectionWhere {
+  contains: TrainCategoryWhere
+}
+
+input TrainCategoryOrderBy {
+  name: OrderDirection
+}
+
+input TrainCategoryWhere {
+  name: StringWhere
+  and: [TrainCategoryWhere]
+  or: [TrainCategoryWhere]
+}
+
+input TrainCollectionWhere {
+  contains: TrainWhere
+}
+
+type TrainLocation {
+  speed: Int!
+  accuracy: Int
+  timestamp: DateTime!
+  location: [Float!]!
+  train: Train
+}
+
+input TrainLocationCollectionWhere {
+  contains: TrainLocationWhere
+}
+
+input TrainLocationOrderBy {
+  speed: OrderDirection
+  accuracy: OrderDirection
+  timestamp: OrderDirection
+  train: TrainOrderBy
+}
+
+input TrainLocationWhere {
+  speed: IntWhere
+  accuracy: IntWhere
+  timestamp: DateTimeWhere
+  train: TrainWhere
+  and: [TrainLocationWhere]
+  or: [TrainLocationWhere]
+}
+
+input TrainOrderBy {
+  cancelled: OrderDirection
+  commuterLineid: OrderDirection
+  deleted: OrderDirection
+  departureDate: OrderDirection
+  runningCurrently: OrderDirection
+  timetableAcceptanceDate: OrderDirection
+  timetableType: OrderDirection
+  trainNumber: OrderDirection
+  version: OrderDirection
+  operator: OperatorOrderBy
+  trainType: TrainTypeOrderBy
+}
+
+type TrainTrackingMessage {
+  id: Int!
+  version: String!
+  timestamp: DateTime!
+  trackSectionCode: String!
+  nextTrackSectionCode: String
+  previousTrackSectionCode: String
+  type: TrainTrackingMessageType!
+  station: Station
+  nextStation: Station
+  previousStation: Station
+  train: Train
+  trackSection: TrackSection
+}
+
+input TrainTrackingMessageCollectionWhere {
+  contains: TrainTrackingMessageWhere
+}
+
+input TrainTrackingMessageOrderBy {
+  id: OrderDirection
+  version: OrderDirection
+  timestamp: OrderDirection
+  trackSectionCode: OrderDirection
+  nextTrackSectionCode: OrderDirection
+  previousTrackSectionCode: OrderDirection
+  type: OrderDirection
+  station: StationOrderBy
+  nextStation: StationOrderBy
+  previousStation: StationOrderBy
+  train: TrainOrderBy
+  trackSection: TrackSectionOrderBy
+}
+
+enum TrainTrackingMessageType {
+  OCCUPY
+  RELEASE
+}
+
+input TrainTrackingMessageWhere {
+  id: IntWhere
+  version: StringWhere
+  timestamp: DateTimeWhere
+  trackSectionCode: StringWhere
+  nextTrackSectionCode: StringWhere
+  previousTrackSectionCode: StringWhere
+  type: EnumWhere
+  station: StationWhere
+  nextStation: StationWhere
+  previousStation: StationWhere
+  train: TrainWhere
+  trackSection: TrackSectionWhere
+  and: [TrainTrackingMessageWhere]
+  or: [TrainTrackingMessageWhere]
+}
+
+type TrainType {
+  name: String!
+  trainCategory: TrainCategory!
+}
+
+input TrainTypeCollectionWhere {
+  contains: TrainTypeWhere
+}
+
+input TrainTypeOrderBy {
+  name: OrderDirection
+  trainCategory: TrainCategoryOrderBy
+}
+
+input TrainTypeWhere {
+  name: StringWhere
+  trainCategory: TrainCategoryWhere
+  and: [TrainTypeWhere]
+  or: [TrainTypeWhere]
+}
+
+input TrainWhere {
+  cancelled: BooleanWhere
+  commuterLineid: StringWhere
+  deleted: BooleanWhere
+  departureDate: DateWhere
+  runningCurrently: BooleanWhere
+  timetableAcceptanceDate: DateTimeWhere
+  timetableType: EnumWhere
+  trainNumber: IntWhere
+  version: StringWhere
+  operator: OperatorWhere
+  trainType: TrainTypeWhere
+  timeTableRows: TimeTableRowCollectionWhere
+  trainLocations: TrainLocationCollectionWhere
+  compositions: CompositionCollectionWhere
+  trainTrackingMessages: TrainTrackingMessageCollectionWhere
+  routesetMessages: RoutesetMessageCollectionWhere
+  passengerInformationMessages: PassengerInformationMessageCollectionWhere
+  and: [TrainWhere]
+  or: [TrainWhere]
+}
+
+input VersionWhere {
+  equals: String
+  unequals: String
+  greaterThan: String
+  lessThan: String
+}
+
+type Wagon {
+  length: Int!
+  location: Int!
+  salesNumber: Int!
+  catering: Boolean
+  disabled: Boolean
+  luggage: Boolean
+  pet: Boolean
+  playground: Boolean
+  smoking: Boolean
+  video: Boolean
+  wagonType: String
+  vehicleNumber: String
+}
+
+input WagonCollectionWhere {
+  contains: WagonWhere
+}
+
+input WagonOrderBy {
+  length: OrderDirection
+  location: OrderDirection
+  salesNumber: OrderDirection
+  catering: OrderDirection
+  disabled: OrderDirection
+  luggage: OrderDirection
+  pet: OrderDirection
+  playground: OrderDirection
+  smoking: OrderDirection
+  video: OrderDirection
+  wagonType: OrderDirection
+  vehicleNumber: OrderDirection
+}
+
+input WagonWhere {
+  length: IntWhere
+  location: IntWhere
+  salesNumber: IntWhere
+  catering: BooleanWhere
+  disabled: BooleanWhere
+  luggage: BooleanWhere
+  pet: BooleanWhere
+  playground: BooleanWhere
+  smoking: BooleanWhere
+  video: BooleanWhere
+  wagonType: StringWhere
+  vehicleNumber: StringWhere
+  and: [WagonWhere]
+  or: [WagonWhere]
+}
