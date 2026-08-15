@@ -290,16 +290,6 @@ this repo has a live demo and that one does not.
 
 ---
 
-## What I'd Add Next
-
-- **MQTT streaming** for AIS, replacing the poll.
-- **Golden tests** — omitted deliberately: they are font-rasterization sensitive and only stable
-  when generated and verified on one OS, which is a poor trade for a five-widget UI.
-- **Offline tiles** so the map degrades as gracefully as the data already does.
-- **iOS** — the code is ready; the hardware isn't.
-
----
-
 ## License
 
 MIT
