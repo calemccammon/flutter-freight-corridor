@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:freight_core/freight_core.dart';
 import 'package:freight_corridor/data/freight_repository.dart';
 import 'package:freight_corridor/providers/freight_providers.dart';
+import 'package:freight_corridor/providers/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:freight_corridor/screens/rail_screen.dart';
 import 'package:freight_corridor/widgets/async_value_view.dart';
 import 'package:freight_corridor/widgets/common.dart';
@@ -46,7 +48,17 @@ Widget _wrap(Widget child, {List<Override> overrides = const <Override>[]}) {
   );
 }
 
+/// Rail tiles read the watchlist, which is backed by SharedPreferences, so
+/// screen tests have to supply the same override `main()` does at startup.
+late SharedPreferences _preferences;
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    _preferences = await SharedPreferences.getInstance();
+  });
   group('AsyncValueView', () {
     testWidgets('shows a spinner while loading', (tester) async {
       await tester.pumpWidget(
@@ -179,6 +191,7 @@ void main() {
         _wrap(
           const RailScreen(),
           overrides: <Override>[
+            sharedPreferencesProvider.overrideWithValue(_preferences),
             cargoTrainsProvider.overrideWith(
               (ref) async => <FreightTrain>[
                 _train(number: 2228, terminus: 'Kouvola lajittelu'),
@@ -208,6 +221,7 @@ void main() {
         _wrap(
           const RailScreen(),
           overrides: <Override>[
+            sharedPreferencesProvider.overrideWithValue(_preferences),
             cargoTrainsProvider.overrideWith(
               (ref) async => <FreightTrain>[
                 _train(number: 52210, terminus: 'Kotka Mussalo', delay: 79),
@@ -234,6 +248,7 @@ void main() {
         _wrap(
           const RailScreen(),
           overrides: <Override>[
+            sharedPreferencesProvider.overrideWithValue(_preferences),
             cargoTrainsProvider.overrideWith(
               (ref) async => const <FreightTrain>[],
             ),
@@ -250,6 +265,7 @@ void main() {
         _wrap(
           const RailScreen(),
           overrides: <Override>[
+            sharedPreferencesProvider.overrideWithValue(_preferences),
             cargoTrainsProvider.overrideWith(
               (ref) async =>
                   throw const FreightException('Could not load cargo trains'),

@@ -4,6 +4,7 @@ import 'package:freight_core/freight_core.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/freight_providers.dart';
+import '../providers/watchlist.dart';
 import '../widgets/async_value_view.dart';
 import '../widgets/common.dart';
 import '../widgets/page_body.dart';
@@ -19,8 +20,22 @@ class TrainDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final train = ref.watch(trainDetailProvider(trainId));
 
+    final isWatched = ref.watch(
+      watchlistProvider.select((list) => list.watchesTrain(trainId)),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text('Train ${trainId.split('/').first}')),
+      appBar: AppBar(
+        title: Text('Train ${trainId.split('/').first}'),
+        actions: <Widget>[
+          BookmarkButton(
+            isWatched: isWatched,
+            label: 'Train ${trainId.split('/').first}',
+            onPressed: () =>
+                ref.read(watchlistProvider.notifier).toggleTrain(trainId),
+          ),
+        ],
+      ),
       body: PageBody(
         child: AsyncValueView<FreightTrain?>(
           value: train,
@@ -52,6 +67,18 @@ class _Detail extends StatelessWidget {
       children: <Widget>[
         Row(
           children: <Widget>[
+            Hero(
+              tag: 'train-avatar-${train.id}',
+              child: CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: Icon(
+                  train.isMoving ? Icons.train : Icons.pause,
+                  size: 18,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: StatCard(
                 label: 'Operator',

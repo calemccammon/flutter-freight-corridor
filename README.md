@@ -20,6 +20,7 @@ Data flows: `Digitraffic rail GraphQL ─┐` `Digitraffic marine REST ─┴→
 | **Async UI states done once** | `AsyncValue` drives loading / error / empty / data through a single `AsyncValueView` |
 | **Platform differences handled honestly** | A conditional import sets `Accept-Encoding` on the VM and deliberately omits it in the browser |
 | **A domain worth modelling** | AIS bit-packed ETAs, ITU ship-type bands, schedule adherence and rail-to-seaport pairing are all real rules with real edge cases |
+| **Widget-level fundamentals** | The watchlist carries `StatefulWidget` lifecycle, a validated `Form`, `Dismissible` swipe-with-undo, `Hero` and `AnimatedSwitcher` — see below |
 
 ---
 
@@ -139,15 +140,16 @@ The same source on Android (Pixel 9 Pro XL emulator, light theme — the web sho
 and both palettes come from one `ColorScheme.fromSeed`):
 
 <p align="center">
-  <img src="docs/android-overview.png" alt="Overview screen on Android showing live cargo train and vessel counts" width="300" />
-  <img src="docs/android-map.png" alt="Map screen on Android showing live train and vessel positions over southern Finland" width="300" />
+  <img src="docs/android-overview.png" alt="Overview screen on Android showing live cargo train and vessel counts" width="270" />
+  <img src="docs/android-map.png" alt="Map screen on Android showing live train and vessel positions over southern Finland" width="270" />
+  <img src="docs/android-watchlist-undo.png" alt="Watchlist on Android after swiping a pinned train away, showing the undo snackbar" width="270" />
 </p>
 
 ---
 
 ## Tests
 
-78 tests. Every external call is mocked, so CI needs no network and no secrets.
+91 tests. Every external call is mocked, so CI needs no network and no secrets.
 
 | Test | What it verifies |
 |---|---|
@@ -160,6 +162,7 @@ and both palettes come from one `ColorScheme.fromSeed`):
 | `marine_data_source_test` | Headers and query params; UTF-8 decoding of Finnish names; cache fallback when the network drops; the port directory is trimmed before caching and reused on the next load; non-200 handling |
 | `freight_repository_test` | Both transports collapse into one `FreightException`; non-freight vessels dropped; LOCODEs no ship visits excluded |
 | `widgets_test` | `AsyncValueView` renders all four states; delay chips label each bucket; rail list sorts and filters; failures offer a retry |
+| `watchlist_test` | Threshold validation and clamping; pins persist and rehydrate, dropping malformed stored entries; pins resolve against the live feed so a finished run disappears; alerts fire only above the threshold; swipe removes a row and offers undo; an invalid threshold is rejected without overwriting the stored value |
 
 ---
 
@@ -190,8 +193,12 @@ flutter-freight-corridor/
     │   ├── snapshot_store.dart      # interface, so the data layer stays Flutter-free
     │   └── freight_repository.dart  # the one seam between app and outside world
     ├── lib/providers/               # Riverpod providers, written by hand (see below)
-    ├── lib/screens/                 # overview, rail, train detail, corridors, map, settings
-    ├── lib/widgets/                 # async_value_view, delay chip, stat card, composition bar
+    │   └── watchlist.dart           # pins + delay threshold, persisted and validated
+    ├── lib/screens/                 # overview, rail, train detail, corridors, map,
+    │   │                            #   watchlist, settings
+    │   └── watchlist_screen.dart    # ← StatefulWidget, Form, Dismissible, animations
+    ├── lib/widgets/                 # async_value_view, page_body, delay chip, stat card,
+    │                                #   composition bar, bookmark button
     └── tool/smoke.dart              # hits the real APIs and prints results
 ```
 
@@ -277,6 +284,24 @@ categories — but the train detail screen says so in as many words instead of r
 space, and this README does not claim a feature the data cannot support. Finding this needed
 querying the API rather than reading the schema, which is the general lesson: a field existing in
 a GraphQL schema is not a promise that it is ever non-empty for your slice of the data.
+
+### Where the widget fundamentals live
+
+Most of this app is `ConsumerWidget`s over Riverpod, which is the right default — but it means
+whole categories of Flutter never appear. The watchlist is where they do, deliberately gathered
+into one feature rather than scattered as demos:
+
+| Fundamental | Where |
+|---|---|
+| `StatefulWidget` + `initState`/`dispose` | `AlertThresholdForm` owns a `TextEditingController` and `FocusNode` — lifetime-bound resources that Riverpod should *not* hold |
+| `Form` + `TextFormField` + validator | The delay threshold; the rule itself is `Watchlist.validateAlertMinutes`, unit-tested away from the widget |
+| `Dismissible` + undo | Swipe a pin away, with a snackbar that puts it back — destructive gestures need an exit |
+| `Hero` | The train avatar animates from the Rail row into the detail screen |
+| `AnimatedSwitcher` / `SizeTransition` | The alert banner grows in, the bookmark scales on toggle, Save becomes a tick |
+| `Semantics` | Bookmark icons announce their state rather than reading as an unlabelled button |
+
+The split is the point: **Riverpod owns application state, `State` owns widget-lifetime
+resources.** A `TextEditingController` in a provider would outlive the field it belongs to.
 
 ### Polling, not MQTT
 

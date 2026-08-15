@@ -9,6 +9,7 @@ import 'screens/overview_screen.dart';
 import 'screens/rail_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/train_detail_screen.dart';
+import 'screens/watchlist_screen.dart';
 
 class FreightCorridorApp extends ConsumerWidget {
   const FreightCorridorApp({super.key});
@@ -116,12 +117,20 @@ final _router = GoRouter(
         StatefulShellBranch(
           routes: <RouteBase>[
             GoRoute(
-              path: '/settings',
-              builder: (context, state) => const SettingsScreen(),
+              path: '/watchlist',
+              builder: (context, state) => const WatchlistScreen(),
             ),
           ],
         ),
       ],
+    ),
+    // Pushed onto the root navigator rather than living in a branch, so it
+    // covers the tab bar and gets a back button. Settings is somewhere you
+    // visit and leave, not a place you switch between.
+    GoRoute(
+      path: '/settings',
+      parentNavigatorKey: _rootKey,
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );
@@ -165,9 +174,9 @@ class _Shell extends StatelessWidget {
             label: 'Map',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.bookmark_border),
+            selectedIcon: Icon(Icons.bookmark),
+            label: 'Watchlist',
           ),
         ],
       ),

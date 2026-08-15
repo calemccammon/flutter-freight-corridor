@@ -34,6 +34,11 @@ class OverviewScreen extends ConsumerWidget {
             },
             icon: const Icon(Icons.refresh),
           ),
+          IconButton(
+            tooltip: 'Settings',
+            onPressed: () => context.push('/settings'),
+            icon: const Icon(Icons.settings_outlined),
+          ),
         ],
       ),
       body: PageBody(

@@ -59,6 +59,49 @@ class DelayChip extends StatelessWidget {
   }
 }
 
+/// Toggles a train or vessel on the watchlist.
+///
+/// The icon scales and cross-fades on change: a bookmark that simply swaps
+/// glyphs gives no feedback that the tap registered, which matters most on a
+/// list where the row itself does not move.
+class BookmarkButton extends StatelessWidget {
+  const BookmarkButton({
+    required this.isWatched,
+    required this.onPressed,
+    required this.label,
+    super.key,
+  });
+
+  final bool isWatched;
+  final VoidCallback onPressed;
+
+  /// Spoken by screen readers in place of the bare icon.
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: isWatched ? 'Remove from watchlist' : 'Add to watchlist',
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        transitionBuilder: (child, animation) =>
+            ScaleTransition(scale: animation, child: child),
+        child: Icon(
+          isWatched ? Icons.bookmark : Icons.bookmark_border,
+          key: ValueKey<bool>(isWatched),
+          color: isWatched ? scheme.primary : scheme.outline,
+          semanticLabel: isWatched
+              ? '$label is on the watchlist'
+              : '$label is not on the watchlist',
+        ),
+      ),
+    );
+  }
+}
+
 /// A single headline number.
 class StatCard extends StatelessWidget {
   const StatCard({

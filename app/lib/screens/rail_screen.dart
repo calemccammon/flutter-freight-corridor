@@ -4,6 +4,7 @@ import 'package:freight_core/freight_core.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/freight_providers.dart';
+import '../providers/watchlist.dart';
 import '../widgets/async_value_view.dart';
 import '../widgets/common.dart';
 import '../widgets/page_body.dart';
@@ -56,13 +57,16 @@ class RailScreen extends ConsumerWidget {
   }
 }
 
-class _TrainTile extends StatelessWidget {
+class _TrainTile extends ConsumerWidget {
   const _TrainTile({required this.train});
 
   final FreightTrain train;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWatched = ref.watch(
+      watchlistProvider.select((list) => list.watchesTrain(train.id)),
+    );
     final speed = train.speedKmh;
     final subtitle = <String>[
       train.operatorName,
@@ -71,17 +75,33 @@ class _TrainTile extends StatelessWidget {
     ].join(' · ');
 
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(
-          train.isMoving ? Icons.train : Icons.pause,
-          size: 18,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
+      leading: Hero(
+        // Shared with the detail screen's avatar, so tapping a row animates
+        // the marker across instead of cutting to a new page.
+        tag: 'train-avatar-${train.id}',
+        child: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          child: Icon(
+            train.isMoving ? Icons.train : Icons.pause,
+            size: 18,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
         ),
       ),
       title: Text('Train ${train.trainNumber}'),
       subtitle: Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
-      trailing: DelayChip(status: train.delayStatus, minutes: train.worstDelay),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          DelayChip(status: train.delayStatus, minutes: train.worstDelay),
+          BookmarkButton(
+            isWatched: isWatched,
+            label: 'Train ${train.trainNumber}',
+            onPressed: () =>
+                ref.read(watchlistProvider.notifier).toggleTrain(train.id),
+          ),
+        ],
+      ),
       onTap: () => context.go('/rail/${train.id}'),
     );
   }
