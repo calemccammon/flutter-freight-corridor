@@ -129,10 +129,16 @@ class _Map extends StatelessWidget {
                   ),
               ],
             ),
+            // Two different things need crediting here, and only the basemap
+            // was. The tiles are OpenStreetMap via CARTO; the trains and
+            // vessels drawn on top are Fintraffic's open data under CC BY 4.0,
+            // which requires the licence to be indicated wherever the data is
+            // shown -- not only in the repository README that no user reads.
             const RichAttributionWidget(
               attributions: <SourceAttribution>[
                 TextSourceAttribution('OpenStreetMap contributors'),
                 TextSourceAttribution('CARTO'),
+                TextSourceAttribution('Traffic data: Fintraffic Digitraffic, CC BY 4.0'),
               ],
             ),
           ],

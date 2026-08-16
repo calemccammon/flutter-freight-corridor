@@ -152,6 +152,24 @@ class AboutSection extends StatelessWidget {
             'Both are open data and need no API key.',
             style: theme.textTheme.bodySmall,
           ),
+          const SizedBox(height: 12),
+          Text('Licence', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          // CC BY 4.0 asks for four things: credit the source, link to it,
+          // indicate the licence, and say so where the material was modified.
+          // This screen is the only place in the app a user can read all four,
+          // which is why it states them rather than just naming the source.
+          SelectableText(
+            'Fintraffic Digitraffic data is licensed under Creative Commons '
+            'Attribution 4.0 International (CC BY 4.0).\n\n'
+            'Source: https://www.digitraffic.fi/en/\n'
+            'Licence: https://creativecommons.org/licenses/by/4.0/\n\n'
+            'Modified: this app classifies delays into bands and derives '
+            'corridors by linking a cargo train to the nearest port with a '
+            'matching call, so what is shown is a derived work rather than '
+            'raw Digitraffic output.',
+            style: theme.textTheme.bodySmall,
+          ),
         ],
       ),
     );

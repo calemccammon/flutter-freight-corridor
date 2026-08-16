@@ -208,6 +208,13 @@ flutter-freight-corridor/
 
 All open data from **[Fintraffic Digitraffic](https://www.digitraffic.fi/en/)**. No API key.
 
+Licensed under **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**, which permits
+this use and requires attribution in return: credit to Fintraffic, a link to the source, an
+indication of the licence, and a note where the data has been modified. This app **modifies**
+it — delays are classified into bands, and corridors are derived by linking a train's terminus
+to the nearest port with a cargo call in-window — so what it displays is a derived work rather
+than raw Digitraffic output.
+
 | Feed | Endpoint |
 |---|---|
 | Cargo trains (GraphQL) | `rata.digitraffic.fi/api/v2/graphql/graphql` — `currentlyRunningTrains`, filtered to `trainCategory: "Cargo"` |
