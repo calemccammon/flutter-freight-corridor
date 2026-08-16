@@ -149,7 +149,7 @@ and both palettes come from one `ColorScheme.fromSeed`):
 
 ## Tests
 
-91 tests. Every external call is mocked, so CI needs no network and no secrets.
+118 tests (69 app, 49 core). Every external call is mocked, so CI needs no network and no secrets.
 
 | Test | What it verifies |
 |---|---|
