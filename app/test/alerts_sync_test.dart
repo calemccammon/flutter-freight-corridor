@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:freight_corridor/data/alerts_client.dart';
 import 'package:freight_corridor/providers/alerts_sync.dart';
 import 'package:freight_corridor/providers/settings.dart';
-import 'package:freight_corridor/providers/watchlist.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
