@@ -26,7 +26,10 @@ Future<ProviderContainer> containerWith({
 }
 
 /// Records every rule POSTed so tests can assert on what was sent.
-AlertsClient recordingClient(List<Map<String, Object?>> sent, {int status = 201}) {
+AlertsClient recordingClient(
+  List<Map<String, Object?>> sent, {
+  int status = 201,
+}) {
   final mock = MockClient((http.Request request) async {
     if (request.method == 'POST') {
       sent.add(jsonDecode(request.body) as Map<String, Object?>);
@@ -35,7 +38,10 @@ AlertsClient recordingClient(List<Map<String, Object?>> sent, {int status = 201}
         status,
       );
     }
-    return http.Response(jsonEncode(<String, Object?>{'alerts': <Object?>[]}), 200);
+    return http.Response(
+      jsonEncode(<String, Object?>{'alerts': <Object?>[]}),
+      200,
+    );
   });
   return AlertsClient(
     baseUrl: 'https://alerts.test',
@@ -57,8 +63,9 @@ void main() {
     final container = await containerWith(client: null);
     addTearDown(container.dispose);
 
-    final outcome =
-        await container.read(alertsSyncProvider.notifier).syncWatchlist();
+    final outcome = await container
+        .read(alertsSyncProvider.notifier)
+        .syncWatchlist();
     expect(outcome.succeeded, isFalse);
     expect(outcome.error, contains('Set the service URL'));
   });
@@ -75,8 +82,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final outcome =
-        await container.read(alertsSyncProvider.notifier).syncWatchlist();
+    final outcome = await container
+        .read(alertsSyncProvider.notifier)
+        .syncWatchlist();
     expect(outcome.succeeded, isTrue);
     expect(outcome.synced, 1);
     expect(sent.single['target'], '3001');
@@ -94,8 +102,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final outcome =
-        await container.read(alertsSyncProvider.notifier).syncWatchlist();
+    final outcome = await container
+        .read(alertsSyncProvider.notifier)
+        .syncWatchlist();
     expect(outcome.synced, 1);
     expect(sent, hasLength(1));
   });
@@ -112,8 +121,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final outcome =
-        await container.read(alertsSyncProvider.notifier).syncWatchlist();
+    final outcome = await container
+        .read(alertsSyncProvider.notifier)
+        .syncWatchlist();
     expect(outcome.skippedVessels, 2);
     expect(sent, hasLength(1));
   });
@@ -123,7 +133,9 @@ void main() {
     final mock = MockClient((http.Request request) async {
       sent.add(<String, Object?>{});
       return http.Response(
-        jsonEncode(<String, Object?>{'error': 'threshold must be at least 1 minute'}),
+        jsonEncode(<String, Object?>{
+          'error': 'threshold must be at least 1 minute',
+        }),
         400,
       );
     });
@@ -139,8 +151,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final outcome =
-        await container.read(alertsSyncProvider.notifier).syncWatchlist();
+    final outcome = await container
+        .read(alertsSyncProvider.notifier)
+        .syncWatchlist();
     expect(outcome.succeeded, isFalse);
     expect(outcome.error, contains('at least 1 minute'));
   });
@@ -150,8 +163,9 @@ void main() {
     final container = await containerWith(client: recordingClient(sent));
     addTearDown(container.dispose);
 
-    final outcome =
-        await container.read(alertsSyncProvider.notifier).syncWatchlist();
+    final outcome = await container
+        .read(alertsSyncProvider.notifier)
+        .syncWatchlist();
     expect(outcome.succeeded, isTrue);
     expect(outcome.synced, 0);
     expect(sent, isEmpty);
@@ -166,7 +180,11 @@ void main() {
         .save(baseUrl: 'https://alerts.test/', token: '  a-token-value-here  ');
 
     final saved = container.read(alertsConnectionProvider);
-    expect(saved.baseUrl, 'https://alerts.test', reason: 'trailing slash trimmed');
+    expect(
+      saved.baseUrl,
+      'https://alerts.test',
+      reason: 'trailing slash trimmed',
+    );
     expect(saved.token, 'a-token-value-here', reason: 'whitespace trimmed');
     expect(saved.isConfigured, isTrue);
   });
@@ -176,7 +194,10 @@ void main() {
     addTearDown(container.dispose);
 
     final controller = container.read(alertsConnectionProvider.notifier);
-    await controller.save(baseUrl: 'https://alerts.test', token: 'a-token-value');
+    await controller.save(
+      baseUrl: 'https://alerts.test',
+      token: 'a-token-value',
+    );
     await controller.disconnect();
 
     expect(container.read(alertsConnectionProvider).isConfigured, isFalse);

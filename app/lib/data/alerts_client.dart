@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-
 /// Client for the companion [freight-alerts](https://github.com/calemccammon/freight-alerts)
 /// service.
 ///
@@ -166,9 +165,7 @@ class AlertsClient {
   }
 
   Future<AlertFeed> alerts({int limit = 50}) async {
-    final body = await _get('/api/alerts', <String, String>{
-      'limit': '$limit',
-    });
+    final body = await _get('/api/alerts', <String, String>{'limit': '$limit'});
     final raw = (body['alerts'] as List<Object?>? ?? <Object?>[]);
     return AlertFeed(
       alerts: raw
@@ -267,7 +264,9 @@ class AlertsClient {
     // and http's `body` getter guesses Latin-1 when the charset is unstated.
     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
     if (decoded is! Map<String, Object?>) {
-      throw const AlertsException('The service returned an unexpected response');
+      throw const AlertsException(
+        'The service returned an unexpected response',
+      );
     }
     return decoded;
   }

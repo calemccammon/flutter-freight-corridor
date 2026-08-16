@@ -138,7 +138,9 @@ class _Map extends StatelessWidget {
               attributions: <SourceAttribution>[
                 TextSourceAttribution('OpenStreetMap contributors'),
                 TextSourceAttribution('CARTO'),
-                TextSourceAttribution('Traffic data: Fintraffic Digitraffic, CC BY 4.0'),
+                TextSourceAttribution(
+                  'Traffic data: Fintraffic Digitraffic, CC BY 4.0',
+                ),
               ],
             ),
           ],

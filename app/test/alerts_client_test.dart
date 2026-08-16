@@ -37,7 +37,10 @@ void main() {
     });
 
     test('accepts a full http or https URL', () {
-      expect(AlertsClient.validateBaseUrl('https://alerts.example.com'), isNull);
+      expect(
+        AlertsClient.validateBaseUrl('https://alerts.example.com'),
+        isNull,
+      );
       expect(AlertsClient.validateBaseUrl('http://localhost:8080'), isNull);
     });
 
@@ -45,7 +48,10 @@ void main() {
       expect(AlertsClient.validateBaseUrl(''), isNotNull);
       expect(AlertsClient.validateBaseUrl('   '), isNotNull);
       expect(AlertsClient.validateBaseUrl('alerts.example.com'), isNotNull);
-      expect(AlertsClient.validateBaseUrl('ftp://alerts.example.com'), isNotNull);
+      expect(
+        AlertsClient.validateBaseUrl('ftp://alerts.example.com'),
+        isNotNull,
+      );
     });
   });
 
@@ -86,8 +92,16 @@ void main() {
         client.signedInAs(),
         throwsA(
           isA<AlertsException>()
-              .having((AlertsException e) => e.isAuthFailure, 'isAuthFailure', isTrue)
-              .having((AlertsException e) => e.message, 'message', contains('token')),
+              .having(
+                (AlertsException e) => e.isAuthFailure,
+                'isAuthFailure',
+                isTrue,
+              )
+              .having(
+                (AlertsException e) => e.message,
+                'message',
+                contains('token'),
+              ),
         ),
       );
     });
@@ -265,10 +279,13 @@ void main() {
       );
     });
 
-    test('a non-JSON body is reported rather than throwing a parse error', () async {
-      final client = clientReturning(200, '<html>gateway timeout</html>');
-      await expectLater(client.alerts(), throwsA(isA<AlertsException>()));
-    });
+    test(
+      'a non-JSON body is reported rather than throwing a parse error',
+      () async {
+        final client = clientReturning(200, '<html>gateway timeout</html>');
+        await expectLater(client.alerts(), throwsA(isA<AlertsException>()));
+      },
+    );
   });
 }
 

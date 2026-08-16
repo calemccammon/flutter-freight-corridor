@@ -165,7 +165,8 @@ class _AlertsServiceSectionState extends ConsumerState<AlertsServiceSection> {
                 OutlinedButton(
                   // Nothing to sync without a connection or a watchlist, so the
                   // button says so by being unavailable rather than failing.
-                  onPressed: _busy || !connection.isConfigured || watchlist.isEmpty
+                  onPressed:
+                      _busy || !connection.isConfigured || watchlist.isEmpty
                       ? null
                       : _sync,
                   child: Text('Sync ${watchlist.trainIds.length} trains'),
@@ -187,7 +188,9 @@ class _AlertsServiceSectionState extends ConsumerState<AlertsServiceSection> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Icon(
-                    _statusIsError ? Icons.error_outline : Icons.check_circle_outline,
+                    _statusIsError
+                        ? Icons.error_outline
+                        : Icons.check_circle_outline,
                     size: 18,
                     color: _statusIsError
                         ? theme.colorScheme.error
