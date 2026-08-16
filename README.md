@@ -204,6 +204,30 @@ flutter-freight-corridor/
 
 ---
 
+## Companion Service
+
+The watchlist here is device-local: it lives in `shared_preferences`, evaporates
+on reinstall, and watches nothing while the app is closed.
+[`freight-alerts`](https://github.com/calemccammon/freight-alerts) is the other
+half — a Go service that holds the rules server-side, polls Digitraffic on a
+schedule, and records an alert **once** per train per day.
+
+**Settings → Alerts service** connects the two: paste the service URL and a
+device token, and every watched train is registered as a server-side rule.
+
+Two details worth knowing:
+
+- **Authentication is a bearer token, not a cookie.** Cookie jars and OAuth
+  redirects assume a browser. The service issues a device token from
+  `POST /api/tokens`, which is a session row like any other — same hashing, same
+  expiry, same revocation.
+- **A local pin is `trainNumber/departureDate`; a server rule is the number.**
+  Watching train 3001 today means watching it on every day it runs, so two pins
+  for the same train collapse into one rule. Watched *vessels* are reported as
+  skipped rather than dropped silently — the service is rail-only so far.
+
+---
+
 ## Data Sources
 
 All open data from **[Fintraffic Digitraffic](https://www.digitraffic.fi/en/)**. No API key.

@@ -26,3 +26,21 @@ tutorials and model priors assume:
   forbidden header in browsers, which send it themselves.
 - Both APIs report coordinates as `[longitude, latitude]`. Use `GeoPoint.fromLonLat`.
 - AIS `properties.timestamp` is a second-of-minute, not a time. Use `timestampExternal`.
+
+## Companion service integration
+
+`lib/data/alerts_client.dart` talks to
+[`freight-alerts`](https://github.com/calemccammon/freight-alerts). Two things
+about it are load-bearing:
+
+- **Decode `bodyBytes` as UTF-8, never `response.body`.** `http`'s `body` getter
+  guesses Latin-1 when the charset is unstated, which turns Riihimäki into
+  mojibake. `decodes Finnish station names as UTF-8` pins this.
+- **The device token is stored in `shared_preferences`, not a keystore.** A
+  deliberate trade-off, documented in `alerts_sync.dart`: it avoids another
+  plugin, and the token grants access to one user's watch rules on one service
+  and nothing in their GitHub account. Anything of real value would want
+  `flutter_secure_storage`.
+
+Local watch ids are `trainNumber/departureDate`; server rules key on the number
+alone. `sends the train number, dropping the local departure date` guards that.

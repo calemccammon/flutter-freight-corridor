@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/settings.dart';
+import 'alerts_service_section.dart';
 import '../widgets/page_body.dart';
 
 /// Everything here writes straight through to storage and invalidates only the
@@ -103,6 +104,9 @@ class SettingsScreen extends ConsumerWidget {
                     controller.setThemeMode(selection.first),
               ),
             ),
+            const Divider(height: 32),
+            _SectionLabel('Alerts service'),
+            const AlertsServiceSection(),
             const Divider(height: 32),
             const AboutSection(),
           ],
