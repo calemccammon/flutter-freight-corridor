@@ -145,15 +145,12 @@ void main() {
       expect(train.delayStatus, DelayStatus.minor);
     });
 
-    test(
-      'returns an empty list rather than throwing on a null payload',
-      () async {
-        final trains = await _sourceReturning(const <String, dynamic>{
-          'currentlyRunningTrains': <dynamic>[],
-        }).cargoTrains();
-        expect(trains, isEmpty);
-      },
-    );
+    test('returns an empty list when no trains are running', () async {
+      final trains = await _sourceReturning(const <String, dynamic>{
+        'currentlyRunningTrains': <dynamic>[],
+      }).cargoTrains();
+      expect(trains, isEmpty);
+    });
 
     test('maps a train detail response including wagon composition', () async {
       final source = _sourceReturning(_trainDetailResponse);

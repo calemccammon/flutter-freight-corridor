@@ -1,11 +1,11 @@
 {
-    "name": "freight_corridor",
-    "short_name": "freight_corridor",
+    "name": "Freight Corridor",
+    "short_name": "Freight Corridor",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Live freight rail and maritime cargo tracking across the Finnish transport corridor.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

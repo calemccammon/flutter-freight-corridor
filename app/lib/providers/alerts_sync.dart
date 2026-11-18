@@ -69,7 +69,14 @@ final alertsConnectionProvider =
 final alertsClientProvider = Provider<AlertsClient?>((Ref ref) {
   final connection = ref.watch(alertsConnectionProvider);
   if (!connection.isConfigured) return null;
-  return AlertsClient(baseUrl: connection.baseUrl, token: connection.token);
+  final client = AlertsClient(
+    baseUrl: connection.baseUrl,
+    token: connection.token,
+  );
+  // The client owns its own http.Client, so it is closed when the connection
+  // changes or the provider is disposed.
+  ref.onDispose(client.close);
+  return client;
 });
 
 /// What a sync attempt produced, in a form the UI can render directly.

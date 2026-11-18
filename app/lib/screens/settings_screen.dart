@@ -68,9 +68,9 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
               subtitle: Text(
-                'Digitraffic allows 60 requests a minute; at '
-                '${settings.pollSeconds}s this app uses '
-                '${(60 / settings.pollSeconds).round()}.',
+                'Digitraffic allows 60 requests a minute; each refresh '
+                'makes two, so at ${settings.pollSeconds}s this app uses '
+                '${(120 / settings.pollSeconds).round()}.',
                 style: theme.textTheme.bodySmall,
               ),
             ),

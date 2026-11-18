@@ -157,6 +157,32 @@ void main() {
       expect(source.staleSince, isNotNull, reason: 'and marked as stale');
     });
 
+    test('does not serve a snapshot taken for a different query', () async {
+      var shouldFail = false;
+
+      final source = MarineDataSource(
+        MockClient((_) async {
+          if (shouldFail) throw const SocketFailure();
+          return http.Response(jsonEncode(_locations), 200);
+        }),
+        cache: InMemorySnapshotStore(),
+      );
+
+      // Warm the cache with the vessels around one point.
+      await source.vesselPositions(
+        centre: const GeoPoint(latitude: 60, longitude: 24),
+        radiusKm: 10,
+      );
+
+      // A failed request for a different area must not be answered with them.
+      shouldFail = true;
+      final elsewhere = source.vesselPositions(
+        centre: const GeoPoint(latitude: 65, longitude: 25),
+        radiusKm: 10,
+      );
+      await expectLater(elsewhere, throwsA(isA<MarineRequestException>()));
+    });
+
     test('throws when the network fails and nothing is cached', () async {
       final source = MarineDataSource(
         MockClient((_) async => throw const SocketFailure()),

@@ -125,6 +125,5 @@ double _averageBearingToPort(List<FreightTrain> trains, GeoPoint portPoint) {
       if (train.position != null)
         initialBearingDegrees(train.position!, portPoint),
   ];
-  if (bearings.isEmpty) return 0;
-  return bearings.reduce((a, b) => a + b) / bearings.length;
+  return meanBearingDegrees(bearings);
 }

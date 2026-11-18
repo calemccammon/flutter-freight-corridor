@@ -86,9 +86,10 @@ final freightVesselsProvider = FutureProvider<Sourced<List<TrackedVessel>>>((
 ///
 /// A `Stream` rather than a `Future` because this is the one genuinely
 /// continuous thing in the app. Polling is used instead of Digitraffic's MQTT
-/// feed: at a 20-second interval this costs three requests a minute against an
-/// allowance of sixty, and a failed poll simply retries where a dropped
-/// websocket would need reconnect and backoff handling.
+/// feed: each poll makes two requests (positions and vessel details), so a
+/// 20-second interval costs six requests a minute against an allowance of
+/// sixty, and a failed poll simply retries where a dropped websocket would
+/// need reconnect and backoff handling.
 final liveVesselsProvider = StreamProvider<Sourced<List<TrackedVessel>>>((
   ref,
 ) async* {

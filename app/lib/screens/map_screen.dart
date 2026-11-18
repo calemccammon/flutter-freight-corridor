@@ -14,7 +14,7 @@ class MapScreen extends ConsumerWidget {
   const MapScreen({super.key});
 
   /// Markers are capped because CanvasKit drops frames well before the data
-  /// does. Nearest-first keeps the cap meaningful rather than arbitrary.
+  /// does. The cap keeps the first entries in the order the feed returns.
   static const _maxVesselMarkers = 150;
 
   @override

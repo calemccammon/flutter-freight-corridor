@@ -40,7 +40,7 @@ class MarineDataSource {
     return parseVesselPositions(json);
   }
 
-  /// Static vessel details, keyed by MMSI. Changes rarely, so callers cache it.
+  /// Static vessel details, keyed by MMSI. Fetched again on every call.
   Future<Map<int, Vessel>> vessels() async {
     final json = await _getJson('/api/ais/v1/vessels');
     return parseVessels(json);
@@ -162,6 +162,10 @@ class MarineDataSource {
   /// A ferry crossing does not stop being interesting because the phone lost
   /// signal, so a failed fetch shows yesterday's answer with a "cached" marker
   /// rather than an error screen. Only a miss on both paths is a real failure.
+  ///
+  /// One snapshot is kept per path, stored together with the query it
+  /// answered. A snapshot is only served to a request with the same query, so
+  /// vessels around one port are never shown as the answer for another.
   Future<Object?> _getJson(
     String path, {
     Map<String, String>? query,
@@ -186,13 +190,16 @@ class MarineDataSource {
         utf8.decode(response.bodyBytes, allowMalformed: true),
       );
       staleSince = null;
-      await store?.write(path, json);
+      await store?.write(path, <String, Object?>{
+        'query': uri.query,
+        'payload': json,
+      });
       return json;
     } on Object catch (error) {
       final cached = store?.read(path);
-      if (cached != null) {
+      if (cached is Map && cached['query'] == uri.query) {
         staleSince = store?.capturedAt(path);
-        return cached;
+        return cached['payload'];
       }
       if (error is MarineRequestException) rethrow;
       throw MarineRequestException('Could not reach $path: $error');

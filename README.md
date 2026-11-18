@@ -1,128 +1,14 @@
-# 🚂 Flutter Freight Corridor
+# Flutter Freight Corridor
 
-> Live Finnish freight logistics on **Flutter** and **Dart** — cargo trains over a real
-> **GraphQL** API, vessels and port calls over **REST**, joined into multimodal corridors by a
-> pure-Dart core package.
+A Flutter app for Android and the web that shows live Finnish freight traffic. It reads cargo
+trains from the Digitraffic railway GraphQL API and vessels and port calls from the Digitraffic
+marine REST API, then pairs each rail terminus with the nearest seaport to show where freight
+moves from rail to sea.
 
-Data flows: `Digitraffic rail GraphQL ─┐` `Digitraffic marine REST ─┴→ FreightRepository → Riverpod → Android + Web`
+[Live demo](https://calemccammon.github.io/flutter-freight-corridor/) (the web build, deployed to
+GitHub Pages on every push to `main`). The data is open and needs no API key or account.
 
-📖 **[Live demo](https://calemccammon.github.io/flutter-freight-corridor/)** — real data, no API key, no sign-up.
-
----
-
-## What This Project Demonstrates
-
-| Concept | How it's shown |
-|---|---|
-| **Dart as a language, not just Flutter glue** | `packages/freight_core` has zero Flutter imports and 49 tests that run in under a second |
-| **GraphQL against a real endpoint** | Digitraffic's railway API genuinely speaks GraphQL; `ferry` generates type-safe Dart from the committed schema |
-| **Two transports, one abstraction** | GraphQL and REST both disappear behind `FreightRepository`; the UI cannot tell which screen is which |
-| **Async UI states done once** | `AsyncValue` drives loading / error / empty / data through a single `AsyncValueView` |
-| **Platform differences handled honestly** | A conditional import sets `Accept-Encoding` on the VM and deliberately omits it in the browser |
-| **A domain worth modelling** | AIS bit-packed ETAs, ITU ship-type bands, schedule adherence and rail-to-seaport pairing are all real rules with real edge cases |
-| **Widget-level fundamentals** | The watchlist carries `StatefulWidget` lifecycle, a validated `Form`, `Dismissible` swipe-with-undo, `Hero` and `AnimatedSwitcher` — see below |
-
----
-
-## Why Finland
-
-Fintraffic's **Digitraffic** platform is one of the few genuinely open freight datasets in the
-world: live cargo trains, live AIS vessel positions and official port calls, all free, all
-without an API key, and — unusually — with a **public GraphQL endpoint** for the railway side.
-That last detail is why this project uses GraphQL at all: because the upstream actually speaks
-it, not because it was bolted on for show.
-
----
-
-## Architecture
-
-```
-   rata.digitraffic.fi/api/v2/graphql        meri.digitraffic.fi/api/...
-              (GraphQL)                               (REST)
-                  │                                     │
-          RailDataSource                        MarineDataSource
-       ferry + generated types              package:http + SnapshotStore
-                  │                                     │
-                  └──────────────┬──────────────────────┘
-                                 │
-                       FreightRepository
-            one façade · returns only freight_core models
-                       · one exception type
-                                 │
-                  ┌──────────────┴──────────────┐
-                  │                             │
-        Riverpod providers            packages/freight_core
-     Future / Stream / Notifier      PURE DART — no Flutter
-                  │                  models · geo · AIS codes
-                  │                  schedule · corridor_linker
-             AsyncValue<T>                       ▲
-                  │                              │
-            AsyncValueView ───── widgets ────────┘
-                  │
-        go_router shell · 5 tabs · Android + Web
-```
-
-The load-bearing idea is that **nothing GraphQL-shaped and nothing HTTP-shaped escapes the data
-layer.** `FreightRepository` returns only `freight_core` types, so swapping either transport
-would touch exactly one file — and the business rules can be tested without a widget tree, a
-device, or a network.
-
----
-
-## Tech Stack
-
-| Layer | Tool |
-|---|---|
-| Framework | Flutter 3.47 / Dart 3.13 |
-| State | Riverpod 3.4 (`FutureProvider`, `StreamProvider`, `Notifier`) |
-| Routing | go_router 17 — `StatefulShellRoute` with deep-linkable URLs |
-| GraphQL | ferry 0.16 + `ferry_generator`, schema committed |
-| REST | `package:http` |
-| Maps | flutter_map 8 with CARTO basemaps (keyless, CORS-enabled) |
-| Persistence | `shared_preferences` behind a `SnapshotStore` interface |
-| Domain | `packages/freight_core` — pure Dart, `meta` + `collection` only |
-| Tests | `dart test`, `flutter_test`, `mocktail`, `MockClient`, a fake ferry `Link` |
-| CI | GitHub Actions → format, codegen, analyze, test, build, deploy to Pages |
-
----
-
-## Getting Started
-
-```bash
-# 1. Install Flutter 3.47 (https://docs.flutter.dev/get-started/install)
-flutter --version          # expect Flutter 3.47.x / Dart 3.13.x
-
-# 2. One pub get bootstraps both workspace members
-flutter pub get
-
-# 3. Generate the GraphQL types (not committed — see Project Structure)
-cd app && dart run build_runner build
-
-# 4. Run it. No API key, no .env, no account.
-flutter run -d chrome      # or: flutter run -d <android-device>
-```
-
-> **If the Android build fails** with `Unresolved reference 'plugins'` in `settings.gradle.kts`:
-> that is Gradle's Kotlin DSL failing to build its own classpath, not a problem with this project.
-> It happens when `GRADLE_USER_HOME` sits behind a symlink or junction — a Scoop-installed Gradle
-> puts it under `scoop\apps\gradle\current\.gradle`, and `current` is a junction. Point it at a
-> real directory (`GRADLE_USER_HOME=%USERPROFILE%\.gradle`) and it builds. Web and tests are
-> unaffected either way.
-
-```bash
-# Domain logic only — no Flutter, no network, ~1 second
-cd packages/freight_core && dart test
-
-# Everything. All external calls are mocked; CI needs no secrets.
-cd app && flutter test
-
-# Optional: hit the real APIs and print what came back
-cd app && dart run tool/smoke.dart
-```
-
----
-
-## Screenshots
+## Screens
 
 | Overview | Cargo rail |
 |---|---|
@@ -136,8 +22,8 @@ cd app && dart run tool/smoke.dart
 |---|
 | ![Route, schedule adherence and full timetable for a single cargo train](docs/screenshot-train-detail.jpg) |
 
-The same source on Android (Pixel 9 Pro XL emulator, light theme — the web shots above are dark,
-and both palettes come from one `ColorScheme.fromSeed`):
+The same source on Android in the light theme. The web screenshots above use the dark theme, and
+both palettes come from one `ColorScheme.fromSeed`.
 
 <p align="center">
   <img src="docs/android-overview.png" alt="Overview screen on Android showing live cargo train and vessel counts" width="270" />
@@ -145,222 +31,325 @@ and both palettes come from one `ColorScheme.fromSeed`):
   <img src="docs/android-watchlist-undo.png" alt="Watchlist on Android after swiping a pinned train away, showing the undo snackbar" width="270" />
 </p>
 
----
+The app has five tabs and two pushed screens.
 
-## Tests
+| Screen | Route | Content |
+|---|---|---|
+| Overview | `/` | Counts of running cargo trains, freight vessels and port calls, the on-time share, and the trains currently running late |
+| Rail | `/rail` | Cargo trains sorted by worst delay, with a text filter on train number, operator and terminus |
+| Train detail | `/rail/:trainNumber/:departureDate` | Route, schedule adherence and timetable for one train |
+| Corridors | `/corridors` | Rail termini paired with seaports, ordered by activity |
+| Map | `/map` | Train and vessel positions around a chosen home port |
+| Watchlist | `/watchlist` | Pinned trains and vessels, with a delay threshold |
+| Settings | `/settings` | Home port, search radius, refresh interval, theme, alerts service connection, data licence |
 
-118 tests (69 app, 49 core). Every external call is mocked, so CI needs no network and no secrets.
+The web build uses Flutter's default hash URL strategy, so a deep link has the form
+`https://calemccammon.github.io/flutter-freight-corridor/#/corridors`.
 
-| Test | What it verifies |
-|---|---|
-| `geo_test` | Haversine against the real Helsinki–Tampere distance; bearing and 16-point compass; `[lon, lat]` ordering |
-| `ais_codes_test` | ITU ship-type bands (70–79 cargo, 80–89 tanker); AIS bit-packed ETA decoding, sentinels and year rollover; length/beam from reference points |
-| `schedule_test` | Delay buckets at their boundaries; worst delay ignores early running; adherence returns null (not zero) for an empty sample; no ETA for a stationary train |
-| `geojson_test` | `timestampExternal` is used, not the AIS second-of-minute field; malformed features are skipped, not thrown on |
-| `corridor_linker_test` | A terminus pairs with the nearest seaport in radius; foreign ports and out-of-range termini are excluded; corridors ordered by traffic |
-| `rail_data_source_test` | A real ferry client over a fake `Link` maps GraphQL onto models — so schema, query and mapping cannot silently drift apart |
-| `marine_data_source_test` | Headers and query params; UTF-8 decoding of Finnish names; cache fallback when the network drops; the port directory is trimmed before caching and reused on the next load; non-200 handling |
-| `freight_repository_test` | Both transports collapse into one `FreightException`; non-freight vessels dropped; LOCODEs no ship visits excluded |
-| `widgets_test` | `AsyncValueView` renders all four states; delay chips label each bucket; rail list sorts and filters; failures offer a retry |
-| `watchlist_test` | Threshold validation and clamping; pins persist and rehydrate, dropping malformed stored entries; pins resolve against the live feed so a finished run disappears; alerts fire only above the threshold; swipe removes a row and offers undo; an invalid threshold is rejected without overwriting the stored value |
+## Getting started
 
----
+The project is pinned to Flutter 3.47 and Dart 3.13 (CI uses Flutter 3.47.0).
 
-## Project Structure
+```bash
+# 1. Install Flutter 3.47 (https://docs.flutter.dev/get-started/install)
+flutter --version
+
+# 2. From the repository root. One pub get resolves both workspace packages.
+flutter pub get
+
+# 3. Generate the GraphQL types. They are not committed (see Design decisions).
+cd app
+dart run build_runner build
+
+# 4. Run. There is no API key and no .env file.
+flutter run -d chrome      # or: flutter run -d <android-device>
+```
+
+Tests:
+
+```bash
+# Domain logic only. Plain Dart, no Flutter and no network.
+cd packages/freight_core && dart test
+
+# App tests. Run the code generation step first. All external calls are mocked.
+cd app && flutter test
+
+# Optional: call the live APIs through the data layer and print what came back.
+cd app && dart run tool/smoke.dart
+```
+
+If the Android build fails with `Unresolved reference 'plugins'` in `settings.gradle.kts`, check
+whether `GRADLE_USER_HOME` sits behind a symlink or junction. This was seen with a Scoop-installed
+Gradle on Windows, where the default is `scoop\apps\gradle\current\.gradle` and `current` is a
+junction. Pointing `GRADLE_USER_HOME` at a real directory fixed it. The web build and the tests do
+not use Gradle.
+
+## Architecture
+
+```
+   rata.digitraffic.fi/api/v2/graphql        meri.digitraffic.fi/api/...
+              (GraphQL)                               (REST)
+                  │                                     │
+          RailDataSource                        MarineDataSource
+       ferry + generated types              package:http + SnapshotStore
+                  │                                     │
+                  └──────────────┬──────────────────────┘
+                                 │
+                       FreightRepository
+              returns only freight_core models
+                     one exception type
+                                 │
+                  ┌──────────────┴──────────────┐
+                  │                             │
+        Riverpod providers            packages/freight_core
+     Future / Stream / Notifier       pure Dart, no Flutter
+                  │                  models · geo · AIS codes
+                  │                  schedule · corridor_linker
+             AsyncValue<T>                       ▲
+                  │                              │
+            AsyncValueView ───── widgets ────────┘
+                  │
+        go_router shell · 5 tabs · Android + Web
+```
+
+The repository is a pub workspace with two packages and one lockfile.
+
+`packages/freight_core` holds the models and the domain rules. It depends only on `meta` and
+`collection` and imports nothing from Flutter, so its tests run with `dart test`.
+
+`app` holds the data layer, the Riverpod providers and the screens. `RailDataSource` maps ferry's
+generated types to `freight_core` models. `MarineDataSource` does the same for the REST payloads.
+`FreightRepository` wraps both, returns only `freight_core` types, and converts every failure into
+a single `FreightException`. Providers and widgets therefore have no dependency on ferry or
+`package:http`.
+
+Each screen renders loading, error, empty and data states through one widget, `AsyncValueView`,
+which keeps the previous data on screen while a refresh is in flight.
 
 ```
 flutter-freight-corridor/
-├── pubspec.yaml                     # pub workspace root — one lockfile for both packages
+├── pubspec.yaml                     # pub workspace root, one lockfile for both packages
 ├── analysis_options.yaml            # shared lints, strict-casts, strict-raw-types
 │
-├── packages/freight_core/           # PURE DART — no Flutter import anywhere
+├── packages/freight_core/
 │   ├── lib/src/models/              # geo_point, freight_train, vessel, port, port_call, corridor
 │   └── lib/src/logic/
-│       ├── geo.dart                 # haversine, bearing, compass, knots↔km/h
-│       ├── ais_codes.dart           # ITU ship types, nav status, bit-packed ETA
-│       ├── schedule.dart            # delay buckets, adherence, ETA estimation
-│       ├── geojson.dart             # AIS + port directory parsing, [lon,lat] handling
-│       └── corridor_linker.dart     # ← the rail↔sea join. Plain functions over plain data
+│       ├── geo.dart                 # haversine, bearing, mean bearing, compass
+│       ├── ais_codes.dart           # ITU ship types, navigation status, bit-packed ETA
+│       ├── schedule.dart            # delay buckets, adherence, travel time
+│       ├── geojson.dart             # AIS and port directory parsing
+│       └── corridor_linker.dart     # the rail to sea join
 │
 └── app/
-    ├── build.yaml                   # ferry codegen config; Date/DateTime → String
+    ├── build.yaml                   # ferry codegen config, Date/DateTime mapped to String
     ├── lib/data/
-    │   ├── graphql/schema.graphql   # committed, so CI never needs the live endpoint
+    │   ├── graphql/schema.graphql   # committed, so codegen never needs the live endpoint
     │   ├── graphql/cargo_trains.graphql
-    │   ├── rail_data_source.dart    # ferry → freight_core
-    │   ├── marine_data_source.dart  # http → freight_core, with cache fallback
-    │   ├── digitraffic_headers*.dart# conditional import: VM vs browser
-    │   ├── snapshot_store.dart      # interface, so the data layer stays Flutter-free
-    │   └── freight_repository.dart  # the one seam between app and outside world
-    ├── lib/providers/               # Riverpod providers, written by hand (see below)
-    │   └── watchlist.dart           # pins + delay threshold, persisted and validated
-    ├── lib/screens/                 # overview, rail, train detail, corridors, map,
-    │   │                            #   watchlist, settings
-    │   └── watchlist_screen.dart    # ← StatefulWidget, Form, Dismissible, animations
-    ├── lib/widgets/                 # async_value_view, page_body, delay chip, stat card,
-    │                                #   composition bar, bookmark button
-    └── tool/smoke.dart              # hits the real APIs and prints results
+    │   ├── rail_data_source.dart    # ferry to freight_core
+    │   ├── marine_data_source.dart  # http to freight_core, with snapshot fallback
+    │   ├── digitraffic_headers*.dart# conditional import, VM and browser variants
+    │   ├── snapshot_store.dart      # storage interface for last-known-good payloads
+    │   ├── alerts_client.dart       # client for the freight-alerts service
+    │   └── freight_repository.dart
+    ├── lib/providers/               # Riverpod providers, written by hand
+    ├── lib/screens/
+    ├── lib/widgets/
+    └── tool/smoke.dart              # calls the live APIs and prints results
 ```
 
----
+| Layer | Tool |
+|---|---|
+| Framework | Flutter 3.47, Dart 3.13 |
+| State | flutter_riverpod 3.4 (`FutureProvider`, `StreamProvider`, `Notifier`) |
+| Routing | go_router 17, `StatefulShellRoute` |
+| GraphQL | ferry 0.16 with `ferry_generator`, schema committed |
+| REST | `package:http` |
+| Maps | flutter_map 8 with CARTO basemaps |
+| Persistence | `shared_preferences` behind a `SnapshotStore` interface |
+| Tests | `dart test`, `flutter_test`, `mocktail`, `MockClient`, a fake ferry `Link` |
+| CI | GitHub Actions: format, codegen, analyze, test, web build, debug APK, deploy to Pages |
 
-## Companion Service
+## Data sources
 
-The watchlist here is device-local: it lives in `shared_preferences`, evaporates
-on reinstall, and watches nothing while the app is closed.
-[`freight-alerts`](https://github.com/calemccammon/freight-alerts) is the other
-half — a Go service that holds the rules server-side, polls Digitraffic on a
-schedule, and records an alert **once** per train per day.
-
-**Settings → Alerts service** connects the two: paste the service URL and a
-device token, and every watched train is registered as a server-side rule.
-
-Two details worth knowing:
-
-- **Authentication is a bearer token, not a cookie.** Cookie jars and OAuth
-  redirects assume a browser. The service issues a device token from
-  `POST /api/tokens`, which is a session row like any other — same hashing, same
-  expiry, same revocation.
-- **A local pin is `trainNumber/departureDate`; a server rule is the number.**
-  Watching train 3001 today means watching it on every day it runs, so two pins
-  for the same train collapse into one rule. Watched *vessels* are reported as
-  skipped rather than dropped silently — the service is rail-only so far.
-
----
-
-## Data Sources
-
-All open data from **[Fintraffic Digitraffic](https://www.digitraffic.fi/en/)**. No API key.
-
-Licensed under **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**, which permits
-this use and requires attribution in return: credit to Fintraffic, a link to the source, an
-indication of the licence, and a note where the data has been modified. This app **modifies**
-it — delays are classified into bands, and corridors are derived by linking a train's terminus
-to the nearest port with a cargo call in-window — so what it displays is a derived work rather
-than raw Digitraffic output.
+All data comes from [Fintraffic Digitraffic](https://www.digitraffic.fi/en/).
 
 | Feed | Endpoint |
 |---|---|
-| Cargo trains (GraphQL) | `rata.digitraffic.fi/api/v2/graphql/graphql` — `currentlyRunningTrains`, filtered to `trainCategory: "Cargo"` |
-| Wagon compositions | same endpoint — `compositions { journeySections { wagons locomotives } }` (see caveat below) |
+| Cargo trains (GraphQL) | `rata.digitraffic.fi/api/v2/graphql/graphql`, query `currentlyRunningTrains` filtered to train category `Cargo` |
+| Train detail and wagon composition | same endpoint, query `train(trainNumber, departureDate)` with `compositions { journeySections { wagons locomotives } }` |
 | Vessel positions (AIS) | `meri.digitraffic.fi/api/ais/v1/locations` |
 | Vessel details | `meri.digitraffic.fi/api/ais/v1/vessels` |
 | Port calls | `meri.digitraffic.fi/api/port-call/v1/port-calls` |
 | Port directory | `meri.digitraffic.fi/api/port-call/v1/ports` |
 
-Two things every client must get right, both handled in one place here:
+Every request sends a `Digitraffic-User` header that identifies the client, as Digitraffic's usage
+instructions ask.
 
-- **`Accept-Encoding: gzip` is mandatory.** Digitraffic answers `406 Not Acceptable` without it.
-- **`Digitraffic-User`** identifies the client and raises the rate limit above anonymous.
+### Findings about the upstream API
 
----
+These were found by querying the API and are handled in one place each.
 
-## Key Concepts Explained
+**`Accept-Encoding: gzip` is required.** Digitraffic answers `406 Not Acceptable` without it. The
+header is set explicitly on the Dart VM. In a browser it is a forbidden header name that the
+browser sets itself, so the web build omits it. A conditional import
+(`digitraffic_headers.dart`) selects the right header set at compile time.
+
+**Coordinates are `[longitude, latitude]`.** Both APIs use this order. `GeoPoint.fromLonLat` is
+the only place that reads a coordinate pair, and it returns null for a malformed or out-of-range
+pair.
+
+**The AIS `timestamp` property is the second of the minute.** `properties.timestamp` in the
+`locations` feed holds a value from 0 to 59. The time of the report is `timestampExternal`, in
+epoch milliseconds. `parseVesselPositions` in `geojson.dart` reads `timestampExternal`, and a test
+covers the difference.
+
+**Cargo intent has to be derived.** The port-call feed exposes `arrivalWithCargo`, `notLoading`
+and `discharge` without a field that says what the vessel is there to do. `CargoIntent.from`
+turns them into one of loading, discharging, both, in ballast or unknown.
+
+**The port directory is the worldwide UN/LOCODE list.** The `ports` endpoint returns about 18,600
+places, of which about 170 are Finnish entries with coordinates. Many of those are inland places
+that no ship visits. The app trims the response to Finnish entries with coordinates before caching
+it, and the corridor view further narrows the set to LOCODEs that appear in the port-call feed.
+
+**Wagon composition is empty for cargo trains.** The schema exposes `compositions` on every
+`Train`, with wagon counts, lengths and locomotive types. When this was checked in August 2026,
+0 of 18 running cargo trains returned a composition, while a sample of passenger services returned
+5 to 12 wagons each. The mapping code and its tests are kept because the field is populated for
+other train categories. The train detail screen shows a "No composition published" card for cargo
+trains.
+
+## Design decisions
+
+### Joining rail and sea by distance
+
+The rail API and the marine API share no identifier. `linkCorridors` in `freight_core` joins them
+geographically. It takes the last station on each cargo train's timetable, finds the nearest
+Finnish seaport within 60 km, and attaches the vessels within 60 km of that port and the port
+calls expected there in the next 24 hours. Corridors are ordered by a weighted count of trains,
+port calls and vessels (weights 3, 2 and 1). The weights are a judgement used only for ordering.
+
+The function takes plain lists and a `now` argument, so its tests need no network and no clock.
 
 ### Generated code is not committed
 
-`ferry_generator` emits built_value types and serializers for the *entire* Digitraffic schema —
-129 types — regardless of what you actually query. Measured here: **49,155 lines across 12 files
-(1.4 MB)** from two queries. Committing that would outweigh the hand-written source roughly 25 to
-1 and completely misrepresent the size of the project, so it is gitignored and regenerated in CI
-from the committed `schema.graphql`. Builds stay reproducible without the noise.
+`ferry_generator` emits built_value types and serializers for the whole Digitraffic schema (129
+type definitions), whatever the queries select. When it was measured, two queries produced 49,155
+lines across 12 files (1.4 MB), roughly ten times the hand-written source. The output is
+gitignored and regenerated in CI from the committed `schema.graphql`.
 
-This also dictates the CI step order: **format runs before codegen** (while only hand-written
-files exist) and **analyze runs after** (it cannot resolve without the generated types).
+This sets the CI step order. Formatting is checked before code generation, while only
+hand-written files exist. Analysis runs after it, because the data source imports generated types.
 
 ### Riverpod providers are written by hand
 
-Not an oversight. `riverpod_generator ≥4.0.6` requires `analyzer ^13.0.0`; every published
-`ferry_generator` caps `analyzer <13.0.0`. The two cannot co-resolve, and GraphQL type-safety was
-the point — so ferry keeps its generator and providers are declared explicitly. Each one costs a
-few lines and makes the actual provider types visible in the source, which suits a project meant
-to be read.
+`riverpod_generator` 4.0.6 and later requires `analyzer ^13.0.0`, and every published
+`ferry_generator` caps `analyzer` below 13. The two generators cannot resolve together. The
+project keeps ferry's generator for typed GraphQL and declares providers explicitly.
+`riverpod_lint` and `custom_lint` are absent for a similar version conflict.
 
-### `[lon, lat]`, and a timestamp that isn't one
+### GraphQL scalars are mapped to strings
 
-Both APIs report coordinates as `[longitude, latitude]` — the reverse of how they're spoken.
-Worse, the AIS payload has a `properties.timestamp` field that is **not a timestamp**: it's the
-AIS second-of-minute (0–59). Reading it as one puts every vessel in January 1970. The real
-instant is `timestampExternal`. Both traps are encoded once in `geojson.dart` and covered by
-tests, rather than lurking at each call site.
+`build.yaml` maps the schema's `Date` and `DateTime` scalars to `String`. The data source parses
+them, so the generated layer needs no custom serializers and a malformed timestamp yields null
+instead of failing the response.
 
-### Deriving meaning from three booleans
+### Snapshot fallback for the marine feeds
 
-The port-call feed exposes `arrivalWithCargo`, `notLoading` and `discharge` and leaves the
-interpretation to you. `CargoIntent.from(...)` turns them into one value the UI can display —
-loading, discharging, both, or in ballast — in a pure function with its own tests. That is the
-difference between a screen that shows `notLoading: false` and one that says "Loading".
+`MarineDataSource` writes each successful REST response to a `SnapshotStore`. When a later request
+fails with the same query, it returns the stored payload and records when it was captured, and the map shows an
+"Offline" banner with that time. The store is an interface so that the data layer does not import
+`shared_preferences`. `shared_preferences` was chosen over a database because the payloads are
+replaced on every refresh and are never queried, and on the web it needs no extra assets.
 
-### Joining two APIs that share no identifier
+### Polling instead of MQTT
 
-The rail API knows nothing about ships; the marine API knows nothing about trains. `linkCorridors`
-joins them **geographically**: take each cargo train's final station, find the nearest seaport
-within a radius, and attach the vessels and port calls there. One refinement makes the results
-real — the LOCODE directory lists ~18,600 places worldwide including inland towns no ship ever
-visits, so the port set is narrowed to codes that actually appear in the port-call feed. Without
-it, a terminus gets paired with a lakeside village; with it, you get **Kotka ← Kotka Mussalo**
-and **Kokkola ← Ykspihlaja väliratapiha**, which are real freight connections.
+Digitraffic also offers MQTT over WebSocket. The map polls instead, every 20 seconds by default
+(10, 20 or 60 seconds in Settings). Polling avoids reconnect and backoff handling and separate
+server and browser MQTT clients. Each poll makes two requests, one for positions and one for
+vessel details.
 
-### Wagon composition is a passenger-only feed
+### Widget state and application state
 
-The schema exposes `compositions { journeySections { wagons locomotives } }` on every `Train`,
-which reads like a gift for a freight app — wagon counts, train length, haulage type. It is not.
-Checked against every cargo train running at the time of writing: **0 of 18 returned any
-composition**, while a sample of passenger services returned 5–12 wagons each. Digitraffic
-publishes composition for services where carriage detail matters to a traveller, and freight
-simply isn't one.
+Most screens are `ConsumerWidget`s over Riverpod providers. `AlertThresholdForm` in the watchlist
+and the alerts service section in Settings are stateful widgets, because they own
+`TextEditingController`s and a `FocusNode` whose lifetime is the widget's. The validation rules
+(`Watchlist.validateAlertMinutes`, `AlertsClient.validateBaseUrl`) are static functions with their
+own unit tests.
 
-The mapping code and its tests are kept, because the field is real and populated for other train
-categories — but the train detail screen says so in as many words instead of rendering an empty
-space, and this README does not claim a feature the data cannot support. Finding this needed
-querying the API rather than reading the schema, which is the general lesson: a field existing in
-a GraphQL schema is not a promise that it is ever non-empty for your slice of the data.
+### CARTO basemap
 
-### Where the widget fundamentals live
+The map uses CARTO tiles instead of OpenStreetMap's tile servers. OSM's usage policy requires an
+identifying User-Agent, which a browser does not let the app set. CARTO also has a dark variant
+that follows the app theme.
 
-Most of this app is `ConsumerWidget`s over Riverpod, which is the right default — but it means
-whole categories of Flutter never appear. The watchlist is where they do, deliberately gathered
-into one feature rather than scattered as demos:
+## Watchlist and the alerts service
 
-| Fundamental | Where |
+Trains are pinned with the bookmark button on the Rail list and the train detail screen. The
+watchlist stores ids in `shared_preferences` and resolves them against the live feed, so a train
+that has finished its run drops out of the list. The watchlist model and screen also handle
+vessels, but no screen has a control for pinning one yet. A banner appears when a watched train's
+worst delay reaches the threshold (15 minutes by default, 1 to 240 allowed). Swiping a row removes
+the pin and offers an undo.
+
+The watchlist is local to the device and is only evaluated while the app is open.
+[`freight-alerts`](https://github.com/calemccammon/freight-alerts) is a separate Go service that
+holds watch rules server-side and polls Digitraffic on a schedule. Under Settings, "Alerts
+service" takes the service URL and a device token, checks them, and can then register every watched
+train as a server-side rule.
+
+- The app authenticates with a bearer token issued by the service. The settings screen calls
+  `GET /api/me` to check the connection and `POST /api/rules` to register a train.
+- `AlertsClient` can also read the service's recorded alerts (`GET /api/alerts`) and rules
+  (`GET /api/rules`). No screen displays them yet.
+- A local pin is `trainNumber/departureDate`. A server rule is keyed on the train number alone, so
+  two pins for the same train on different dates become one rule.
+- The service handles trains only. Watched vessels are counted and reported as skipped.
+- The token is stored in `shared_preferences`, not in a platform keystore.
+
+## Testing
+
+There are 122 test cases: 52 in `freight_core` and 70 in the app. No test uses the network.
+
+| Test file | What it covers |
 |---|---|
-| `StatefulWidget` + `initState`/`dispose` | `AlertThresholdForm` owns a `TextEditingController` and `FocusNode` — lifetime-bound resources that Riverpod should *not* hold |
-| `Form` + `TextFormField` + validator | The delay threshold; the rule itself is `Watchlist.validateAlertMinutes`, unit-tested away from the widget |
-| `Dismissible` + undo | Swipe a pin away, with a snackbar that puts it back — destructive gestures need an exit |
-| `Hero` | The train avatar animates from the Rail row into the detail screen |
-| `AnimatedSwitcher` / `SizeTransition` | The alert banner grows in, the bookmark scales on toggle, Save becomes a tick |
-| `Semantics` | Bookmark icons announce their state rather than reading as an unlabelled button |
+| `geo_test` | Haversine against the Helsinki to Tampere distance, bearing and 16-point compass, circular mean of bearings across north, `[lon, lat]` ordering |
+| `ais_codes_test` | ITU ship-type bands (70 to 79 cargo, 80 to 89 tanker), AIS bit-packed ETA decoding including sentinels and year rollover, length and beam from reference points |
+| `schedule_test` | Delay buckets at their boundaries, worst delay ignoring early running, adherence returning null for an empty sample, no travel time for a stationary train |
+| `geojson_test` | `timestampExternal` is used instead of the AIS second-of-minute field, malformed features are skipped |
+| `corridor_linker_test` | Terminus pairs with the nearest seaport in radius, foreign ports and out-of-range termini are excluded, corridors are ordered by traffic, cargo intent, wagon composition totals |
+| `rail_data_source_test` | A ferry client over a fake `Link` runs the generated deserializers and maps the result onto models, so the schema, the query and the mapping are checked together. |
+| `marine_data_source_test` | Headers and query parameters, UTF-8 decoding of Finnish names, snapshot fallback when the network fails, no fallback to a snapshot taken for a different query, port directory trimmed before caching and reused, non-200 handling |
+| `freight_repository_test` | Rail and marine failures become `FreightException`, non-freight vessels are dropped, LOCODEs with no port call are excluded |
+| `widgets_test` | `AsyncValueView` renders its four states, delay chips label each bucket, the rail list sorts and filters, failures offer a retry |
+| `watchlist_test` | Threshold validation and clamping, pins persist and rehydrate, pins resolve against the live feed, alerts fire at the threshold, swipe removes a row and offers undo, an invalid threshold does not overwrite the stored value |
+| `alerts_client_test` | URL and token validation, bearer header, 401 handling, feed parsing, UTF-8 decoding, service error messages, transport failures |
+| `alerts_sync_test` | Train number sent without the departure date, duplicate train numbers registered once, vessels counted as skipped, a rejected rule reports the service message, connection settings stored and cleared |
 
-The split is the point: **Riverpod owns application state, `State` owns widget-lifetime
-resources.** A `TextEditingController` in a provider would outlive the field it belongs to.
+CI runs formatting, code generation, `flutter analyze`, both test suites, a release web build and
+a debug Android APK build on every push. The Pages deployment runs the app tests first.
 
-### Polling, not MQTT
+## Limitations
 
-Digitraffic offers MQTT over WebSocket. This app polls instead. A reconnect/backoff lifecycle
-plus separate server and browser client branches is a lot of surface area for something a 20-
-second poll delivers — and at 20 seconds this uses 3 of the 60 requests a minute allowed. A
-failed poll retries; a dropped websocket on a stranger's laptop is a broken demo.
+- Only the vessel positions on the map are polled. Trains, port calls and corridors refresh on
+  pull-to-refresh, the refresh button or a retry.
+- The rail side has no offline fallback. Only the marine REST responses are stored as snapshots.
+- One snapshot is kept per endpoint, and it is served only to a request with the same query. After
+  the home port or radius changes, there is no offline fallback for vessel positions until the
+  next successful fetch.
+- The corridor pairing is a distance heuristic. It does not know whether a train's cargo is bound
+  for the port it is paired with.
+- The map draws at most 150 vessel markers.
+- Wagon composition is not available for cargo trains (see above).
+- The watchlist does not notify. Alerts appear as a banner inside the app while it is open.
+- Vessels cannot be pinned from the UI, and alerts recorded by the alerts service are not shown.
+- CI builds a debug APK only. The Android release build type has no signing configuration of its
+  own and signs with the debug key.
 
----
+## Data attribution
 
-## Project Comparison
-
-| | `flutter-freight-corridor` | [`react-native-energy-insights`](https://github.com/calemccammon/react-native-energy-insights) |
-|---|---|---|
-| Framework | Flutter 3.47 / Dart | React Native + Expo / TypeScript |
-| UI model | Widgets, composed and immutable | Components + JSX |
-| State | Riverpod 3 (`AsyncValue`) | Zustand + TanStack Query |
-| Data | GraphQL **and** REST behind one repository | REST via Axios |
-| Domain logic | Separate pure-Dart package, 49 tests | Inline in hooks and screens |
-| Targets | One codebase → Android **and** web, deep-linkable | Expo Go / simulator |
-
-Same developer, same shape of problem — a public data API, a typed client, cached state, a tabbed
-mobile UI — deliberately built twice in two ecosystems. The sharpest contrast is the last row:
-Flutter compiles the same source to a native Android app *and* a URL you can share, which is why
-this repo has a live demo and that one does not.
-
----
-
-## License
-
-MIT
+The data is from [Fintraffic Digitraffic](https://www.digitraffic.fi/en/) and is licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The app modifies it: delays are
+classified into bands, and corridors are derived by linking a train's terminus to a nearby port.
+The licence, the source and this note are shown in the app under Settings and in the map
+attribution. Map tiles are from CARTO, based on OpenStreetMap data.
