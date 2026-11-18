@@ -309,7 +309,7 @@ train as a server-side rule.
 
 ## Testing
 
-There are 123 test cases: 52 in `freight_core` and 71 in the app. No test uses the network.
+There are 122 test cases: 52 in `freight_core` and 70 in the app. No test uses the network.
 
 | Test file | What it covers |
 |---|---|
@@ -318,7 +318,7 @@ There are 123 test cases: 52 in `freight_core` and 71 in the app. No test uses t
 | `schedule_test` | Delay buckets at their boundaries, worst delay ignoring early running, adherence returning null for an empty sample, no travel time for a stationary train |
 | `geojson_test` | `timestampExternal` is used instead of the AIS second-of-minute field, malformed features are skipped |
 | `corridor_linker_test` | Terminus pairs with the nearest seaport in radius, foreign ports and out-of-range termini are excluded, corridors are ordered by traffic, cargo intent, wagon composition totals |
-| `rail_data_source_test` | A ferry client over a fake `Link` runs the generated deserializers and maps the result onto models, so the schema, the query and the mapping are checked together. A GraphQL error response raises `RailRequestException` |
+| `rail_data_source_test` | A ferry client over a fake `Link` runs the generated deserializers and maps the result onto models, so the schema, the query and the mapping are checked together. |
 | `marine_data_source_test` | Headers and query parameters, UTF-8 decoding of Finnish names, snapshot fallback when the network fails, no fallback to a snapshot taken for a different query, port directory trimmed before caching and reused, non-200 handling |
 | `freight_repository_test` | Rail and marine failures become `FreightException`, non-freight vessels are dropped, LOCODEs with no port call are excluded |
 | `widgets_test` | `AsyncValueView` renders its four states, delay chips label each bucket, the rail list sorts and filters, failures offer a retry |

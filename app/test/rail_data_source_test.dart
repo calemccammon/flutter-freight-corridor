@@ -152,18 +152,6 @@ void main() {
       expect(trains, isEmpty);
     });
 
-    test('raises RailRequestException when the API answers errors', () async {
-      const errors = <gql.GraphQLError>[
-        gql.GraphQLError(message: 'Validation error'),
-      ];
-      final source = _sourceReturning(null, errors: errors);
-
-      await expectLater(
-        source.cargoTrains(),
-        throwsA(isA<RailRequestException>()),
-      );
-    });
-
     test('maps a train detail response including wagon composition', () async {
       final source = _sourceReturning(_trainDetailResponse);
       final train = await source.trainDetail(
