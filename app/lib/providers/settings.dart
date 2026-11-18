@@ -33,7 +33,7 @@ class Settings {
   final double radiusKm;
 
   /// How often live positions refresh. Digitraffic allows 60 requests a
-  /// minute; at 20 seconds with one request in flight we use three.
+  /// minute; each refresh makes two, so at 20 seconds we use six.
   final int pollSeconds;
 
   final ThemeMode themeMode;

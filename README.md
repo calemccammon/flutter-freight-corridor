@@ -134,7 +134,7 @@ flutter-freight-corridor/
 ├── packages/freight_core/
 │   ├── lib/src/models/              # geo_point, freight_train, vessel, port, port_call, corridor
 │   └── lib/src/logic/
-│       ├── geo.dart                 # haversine, bearing, compass, knots to km/h
+│       ├── geo.dart                 # haversine, bearing, mean bearing, compass
 │       ├── ais_codes.dart           # ITU ship types, navigation status, bit-packed ETA
 │       ├── schedule.dart            # delay buckets, adherence, travel time
 │       ├── geojson.dart             # AIS and port directory parsing
@@ -257,7 +257,7 @@ instead of failing the response.
 ### Snapshot fallback for the marine feeds
 
 `MarineDataSource` writes each successful REST response to a `SnapshotStore`. When a later request
-fails, it returns the stored payload and records when it was captured, and the map shows an
+fails with the same query, it returns the stored payload and records when it was captured, and the map shows an
 "Offline" banner with that time. The store is an interface so that the data layer does not import
 `shared_preferences`. `shared_preferences` was chosen over a database because the payloads are
 replaced on every refresh and are never queried, and on the web it needs no extra assets.
@@ -309,17 +309,17 @@ train as a server-side rule.
 
 ## Testing
 
-There are 118 test cases: 49 in `freight_core` and 69 in the app. No test uses the network.
+There are 123 test cases: 52 in `freight_core` and 71 in the app. No test uses the network.
 
 | Test file | What it covers |
 |---|---|
-| `geo_test` | Haversine against the Helsinki to Tampere distance, bearing and 16-point compass, `[lon, lat]` ordering |
+| `geo_test` | Haversine against the Helsinki to Tampere distance, bearing and 16-point compass, circular mean of bearings across north, `[lon, lat]` ordering |
 | `ais_codes_test` | ITU ship-type bands (70 to 79 cargo, 80 to 89 tanker), AIS bit-packed ETA decoding including sentinels and year rollover, length and beam from reference points |
 | `schedule_test` | Delay buckets at their boundaries, worst delay ignoring early running, adherence returning null for an empty sample, no travel time for a stationary train |
 | `geojson_test` | `timestampExternal` is used instead of the AIS second-of-minute field, malformed features are skipped |
 | `corridor_linker_test` | Terminus pairs with the nearest seaport in radius, foreign ports and out-of-range termini are excluded, corridors are ordered by traffic, cargo intent, wagon composition totals |
-| `rail_data_source_test` | A ferry client over a fake `Link` runs the generated deserializers and maps the result onto models, so the schema, the query and the mapping are checked together |
-| `marine_data_source_test` | Headers and query parameters, UTF-8 decoding of Finnish names, snapshot fallback when the network fails, port directory trimmed before caching and reused, non-200 handling |
+| `rail_data_source_test` | A ferry client over a fake `Link` runs the generated deserializers and maps the result onto models, so the schema, the query and the mapping are checked together. A GraphQL error response raises `RailRequestException` |
+| `marine_data_source_test` | Headers and query parameters, UTF-8 decoding of Finnish names, snapshot fallback when the network fails, no fallback to a snapshot taken for a different query, port directory trimmed before caching and reused, non-200 handling |
 | `freight_repository_test` | Rail and marine failures become `FreightException`, non-freight vessels are dropped, LOCODEs with no port call are excluded |
 | `widgets_test` | `AsyncValueView` renders its four states, delay chips label each bucket, the rail list sorts and filters, failures offer a retry |
 | `watchlist_test` | Threshold validation and clamping, pins persist and rehydrate, pins resolve against the live feed, alerts fire at the threshold, swipe removes a row and offers undo, an invalid threshold does not overwrite the stored value |
@@ -334,20 +334,19 @@ a debug Android APK build on every push. The Pages deployment runs the app tests
 - Only the vessel positions on the map are polled. Trains, port calls and corridors refresh on
   pull-to-refresh, the refresh button or a retry.
 - The rail side has no offline fallback. Only the marine REST responses are stored as snapshots.
-- Snapshots are keyed by endpoint path without the query, so the stored vessel positions are those
-  of the last area requested.
+- One snapshot is kept per endpoint, and it is served only to a request with the same query. After
+  the home port or radius changes, there is no offline fallback for vessel positions until the
+  next successful fetch.
 - The corridor pairing is a distance heuristic. It does not know whether a train's cargo is bound
   for the port it is paired with.
 - The map draws at most 150 vessel markers.
 - Wagon composition is not available for cargo trains (see above).
 - The watchlist does not notify. Alerts appear as a banner inside the app while it is open.
 - Vessels cannot be pinned from the UI, and alerts recorded by the alerts service are not shown.
-- CI builds a debug APK only. The Android release configuration is still the Flutter template: it
-  signs with the debug key, and the main manifest does not declare the `INTERNET` permission.
+- CI builds a debug APK only. The Android release build type has no signing configuration of its
+  own and signs with the debug key.
 
-## Licence and attribution
-
-The code is under the MIT licence (see `LICENSE`).
+## Data attribution
 
 The data is from [Fintraffic Digitraffic](https://www.digitraffic.fi/en/) and is licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The app modifies it: delays are

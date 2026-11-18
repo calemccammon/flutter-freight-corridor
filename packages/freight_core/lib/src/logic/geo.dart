@@ -37,6 +37,26 @@ double initialBearingDegrees(GeoPoint from, GeoPoint to) {
   return (_toDegrees(math.atan2(y, x)) + 360) % 360;
 }
 
+/// Circular mean of [bearings], normalised to 0-360 degrees.
+///
+/// Bearings wrap at north, so an arithmetic mean is wrong: 350 and 10 would
+/// average to 180, due south, when both point within ten degrees of north.
+/// Each bearing is treated as a unit vector and the vectors are summed.
+/// Returns 0 for an empty input.
+double meanBearingDegrees(Iterable<double> bearings) {
+  var sumSin = 0.0;
+  var sumCos = 0.0;
+  var count = 0;
+  for (final bearing in bearings) {
+    final radians = _toRadians(bearing);
+    sumSin += math.sin(radians);
+    sumCos += math.cos(radians);
+    count++;
+  }
+  if (count == 0) return 0;
+  return (_toDegrees(math.atan2(sumSin, sumCos)) + 360) % 360;
+}
+
 const List<String> _compassPoints = <String>[
   'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', //
   'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',

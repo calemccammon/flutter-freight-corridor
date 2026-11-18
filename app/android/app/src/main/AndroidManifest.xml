@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Every screen reads live data from the Digitraffic APIs. The debug and
+         profile manifests declare this for tooling; release builds need it
+         here. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="freight_corridor"
+        android:label="Freight Corridor"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

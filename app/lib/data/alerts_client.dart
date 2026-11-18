@@ -3,19 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-/// Client for the companion [freight-alerts](https://github.com/calemccammon/freight-alerts)
-/// service.
-///
-/// The watchlist in this app is device-local: reinstall the app and it is gone,
-/// and nothing watches your trains while the app is closed. That service is the
-/// other half — it holds the rules server-side and polls on a schedule. This
-/// client is the bridge.
-///
-/// It authenticates with a device token rather than a session cookie. Cookie
-/// jars and OAuth redirects assume a browser; a bearer token is what a native
-/// client can actually carry. The token is minted once from the web UI and
-/// pasted in here.
-///
 /// A failure talking to the alerts service, carrying a message worth showing.
 @immutable
 class AlertsException implements Exception {
@@ -99,6 +86,18 @@ class RemoteRule {
   );
 }
 
+/// Client for the companion [freight-alerts](https://github.com/calemccammon/freight-alerts)
+/// service.
+///
+/// The watchlist in this app is device-local: reinstall the app and it is gone,
+/// and nothing watches your trains while the app is closed. That service is the
+/// other half — it holds the rules server-side and polls on a schedule. This
+/// client is the bridge.
+///
+/// It authenticates with a device token rather than a session cookie. Cookie
+/// jars and OAuth redirects assume a browser; a bearer token is what a native
+/// client can actually carry. The token is minted once from the web UI and
+/// pasted in here.
 class AlertsClient {
   AlertsClient({
     required String baseUrl,

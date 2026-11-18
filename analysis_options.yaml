@@ -3,7 +3,7 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   # Generated sources are gitignored and regenerated in CI, so they are never
   # reviewed and should never fail analysis. See README for why they are not
-  # committed: ferry emits built_value types for the whole 133-type schema.
+  # committed: ferry emits built_value types for the whole 129-type schema.
   exclude:
     - "**/*.g.dart"
     - "**/*.gql.dart"

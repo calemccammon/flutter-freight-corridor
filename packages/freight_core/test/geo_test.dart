@@ -57,6 +57,23 @@ void main() {
     });
   });
 
+  group('meanBearingDegrees', () {
+    test('averages across north instead of pointing south', () {
+      final mean = meanBearingDegrees(<double>[350, 10]);
+      // The result may land a hair either side of north.
+      expect((mean + 180) % 360 - 180, closeTo(0, 1e-9));
+      expect(compassPoint(mean), 'N');
+    });
+
+    test('matches the plain average away from the wrap', () {
+      expect(meanBearingDegrees(<double>[80, 100]), closeTo(90, 1e-9));
+    });
+
+    test('returns 0 for an empty input', () {
+      expect(meanBearingDegrees(const <double>[]), 0);
+    });
+  });
+
   group('GeoPoint.fromLonLat', () {
     test('reads [longitude, latitude] in that order', () {
       // Straight from a live rail API response for train 3425.

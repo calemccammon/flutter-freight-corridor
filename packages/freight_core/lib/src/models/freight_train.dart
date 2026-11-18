@@ -159,8 +159,8 @@ class WagonComposition {
   double get totalLengthMetres =>
       sections.fold(0, (sum, section) => sum + section.totalLengthMetres);
 
-  /// Highest permitted speed across all sections. A train is limited by its
-  /// slowest section, but the sections of one train normally agree.
+  /// Lowest permitted speed across all sections, because a train is limited
+  /// by its slowest section. The sections of one train normally agree.
   int? get maximumSpeedKmh {
     if (sections.isEmpty) return null;
     return sections

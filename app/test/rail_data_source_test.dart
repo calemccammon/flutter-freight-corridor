@@ -145,15 +145,24 @@ void main() {
       expect(train.delayStatus, DelayStatus.minor);
     });
 
-    test(
-      'returns an empty list rather than throwing on a null payload',
-      () async {
-        final trains = await _sourceReturning(const <String, dynamic>{
-          'currentlyRunningTrains': <dynamic>[],
-        }).cargoTrains();
-        expect(trains, isEmpty);
-      },
-    );
+    test('returns an empty list when no trains are running', () async {
+      final trains = await _sourceReturning(const <String, dynamic>{
+        'currentlyRunningTrains': <dynamic>[],
+      }).cargoTrains();
+      expect(trains, isEmpty);
+    });
+
+    test('raises RailRequestException when the API answers errors', () async {
+      const errors = <gql.GraphQLError>[
+        gql.GraphQLError(message: 'Validation error'),
+      ];
+      final source = _sourceReturning(null, errors: errors);
+
+      await expectLater(
+        source.cargoTrains(),
+        throwsA(isA<RailRequestException>()),
+      );
+    });
 
     test('maps a train detail response including wagon composition', () async {
       final source = _sourceReturning(_trainDetailResponse);
